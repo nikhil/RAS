@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+</head>
+<body>
+<div class="front_panel">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;Manual Classification</h2>
+<hr>
+<p>Enter the range of numbers to signify which samples are in which group. You can use '-' (e.g. 2-10) for an inclusive range and commas to add numbers. For example 1,2,4-7 will include [1,2,4,5,6,7] for one group.</p>
+<form action="{{ url_for('get_manual_classification') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span class="pure-control-group">
+<br>
+<br>
+<label for="experiment_id">Experiment Id</label><input type="text" id="experiment_id" name="experiment_id" placeholder="experiment id" value='{{experiment_id}}' readonly/>
+<br>
+<br>
+<span id="range_input">
+<span id="range_1"><label for="group_1_name">Group Name</label><input type="text" id="group_1_name" name="group_1_name" placeholder="e.g. Quiescent" required/><br><label for="group_1">Group 1 Range</label><input type="text" id="group_1" name="group_1" placeholder="e.g. 1,2,4-7" required/><br><br>
+</span>
+<span id="range_2"><label for="group_2_name">Group Name</label><input type="text" id="group_2_name" name="group_2_name" placeholder="e.g. Quiescent" required/><br><label for="group_2">Group 2 Range</label><input type="text" id="group_2" name="group_2" placeholder="e.g. 1,2,4-7" required/><br><br>
+</span>
+<span id="range_3">
+<label for="modify_groups">Modify Groups</label><input type="button" id="modify_groups" class="pure-button" onclick="add_group(3);" value="Add Group">&nbsp;<input type="button" id="modify_groups" class="pure-button" disabled onclick="remove_group(2);" value="Remove Group">
+<br>
+<br>
+</span>
+</span>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</span>
+</form>
+</div>
+<br>
+<br>
+<div class="front_panel">
+<h2>Samples Table</h2>
+<hr>
+{{html_table|safe}}
+
+</div>
+<script type="text/javascript">
+	
+	function add_group(group_num)
+	{
+		var id = "range_"+group_num.toString();
+		var element = document.getElementById(id);
+		var parent_id = "range_input";
+		element.className = 'fadeOut';
+		var append_span = document.createElement('span');
+		append_span.className = 'fadeOut';
+
+		setTimeout(function()
+		{
+		append_span.innerHTML = '<label for="modify_groups">Modify Groups</label><input type="button" id="modify_groups" class="pure-button" onclick="add_group('+(group_num+1).toString()+');" value="Add Group">&nbsp;<input type="button" id="modify_groups" class="pure-button" onclick="remove_group('+(group_num+1).toString()+');" value="Remove Group"><br><br>'
+		element.innerHTML = '<label for="group_'+group_num.toString()+'_name">Group Name</label><input type="text" id="group_'+group_num.toString()+'_name" name="group_'+group_num.toString()+'_name" placeholder="e.g. Quiescent" required/><br><label for="group_'+group_num.toString()+'">Group '+group_num.toString()+' Range</label><input type="text" id="group_'+group_num.toString()+'" name="group_'+group_num.toString()+'" placeholder="e.g. 1,2,4-7" required/><br><br>';
+		var parent_element = document.getElementById(parent_id);
+		append_span.id = 'range_'+(group_num+1).toString();
+		append_span.className = 'fadeIn';
+		parent_element.appendChild(append_span);
+		//element.style.opacity = 1;
+		element.className = 'fadeIn';
+		},500);
+
+	}
+
+	function remove_group(group_num)
+	{
+		var id = "range_"+group_num.toString();
+		var second_id = "range_"+(group_num-1).toString();
+		var element = document.getElementById(id);
+		var second_element = document.getElementById(second_id);
+		element.className = 'fadeOut';
+		second_element.className = 'fadeOut';
+		setTimeout(function()
+		{
+			if(group_num == 4)
+			{
+				second_element.innerHTML = '<label for="modify_groups">Modify Groups</label><input type="button" id="modify_groups" class="pure-button" onclick="add_group('+(group_num-1).toString()+');" value="Add Group">&nbsp;<input type="button" id="modify_groups" class="pure-button" disabled onclick="remove_group('+(group_num-1).toString()+');" value="Remove Group"><br><br>'
+
+			}
+			else
+			{
+				second_element.innerHTML = '<label for="modify_groups">Modify Groups</label><input type="button" id="modify_groups" class="pure-button" onclick="add_group('+(group_num-1).toString()+');" value="Add Group">&nbsp;<input type="button" id="modify_groups" class="pure-button" onclick="remove_group('+(group_num-1).toString()+');" value="Remove Group"><br><br>'
+				
+
+			}
+			
+			//element.style.opacity = 0
+			//second_element.style.opacity = 1
+			//element.className = 'fadeOut';
+			second_element.className = 'fadeIn';
+			element.parentNode.removeChild(element);
+
+
+		},500);
+	}
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+</head>
+<body>
+<div class="front_panel">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;Quality Control</h2>
+<hr>
+<p>Enter the range of numbers to signify which samples to include. You can use '-' (e.g. 2-10) for an inclusive range and commas to add numbers. For example 1,2,4-7 will include [1,2,4,5,6,7] for one group. </p>
+<form action="{{ url_for('get_trim') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span class="pure-control-group">
+<br>
+<br>
+<label for="experiment_id">Experiment Id</label><input type="text" id="experiment_id" name="experiment_id" placeholder="experiment id" value='{{experiment_id}}' readonly/>
+<br>
+<br>
+<label for="trim_range">Trim Range</label><input type="text" id="trim_range" name="trim_range" placeholder="e.g. 1,2,4-7" required/>
+<br>
+<br>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</span>
+</form>
+</div>
+<br>
+<br>
+<div class="front_panel">
+<h2>Samples Table</h2>
+<hr>
+{{html_table|safe}}
+
+</div>
+</body>
+</html>

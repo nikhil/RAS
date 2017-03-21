@@ -1,0 +1,5 @@
+library(cummeRbund)
+args <- commandArgs(trailingOnly=TRUE)
+error_file <- file(args[1], open="wt")
+sink(error_file, type="message")
+cuff <- readCufflinks()

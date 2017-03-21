@@ -1,0 +1,218 @@
+.fadeIn, .fadeOut
+{
+	overflow: hidden;
+}
+.fadeIn
+{
+	visibility: visible;
+	opacity: 1;
+	-webkit-transition: opacity .5s ease-in-out;
+    -moz-transition: opacity .5s ease-in-out;
+    -ms-transition: opacity .5s ease-in-out;
+    -o-transition: opacity .5s ease-in-out;
+    transition: opacity .5s ease-in-out;
+}
+.fadeOut
+{
+	visibility: hidden;
+	opacity: 0;
+    -webkit-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    -moz-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    -ms-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    -o-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    transition: visibility 0s .5s, opacity .5s ease-in-out;
+
+}
+
+fieldset .pure-control-group .fadeOut
+{
+	visibility: hidden;
+	opacity: 0;
+    -webkit-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    -moz-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    -ms-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    -o-transition: visibility 0s .5s, opacity .5s ease-in-out;
+    transition: visibility 0s .5s, opacity .5s ease-in-out;
+
+}
+fieldset .pure-control-group .fadeIn
+{
+	visibility: visible;
+	opacity: 1;
+	-webkit-transition: opacity .5s ease-in-out;
+    -moz-transition: opacity .5s ease-in-out;
+    -ms-transition: opacity .5s ease-in-out;
+    -o-transition: opacity .5s ease-in-out;
+    transition: opacity .5s ease-in-out;
+}
+.fadeIn > div > legend > fieldset,
+.fadeOut > div > legend > fieldset
+{
+
+}
+
+.fadeOut > div
+{
+	margin-top: -10000px;
+	-webkit-transition: margin-top 0s 2s;
+    -moz-transition: opacity 0s 2s;
+    -ms-transition: opacity 0s 2s;
+    -o-transition: opacity 0s 2s;
+    transition: opacity 0s 2s;
+}
+
+.pure-form fieldset
+{
+	border-width: 0px;
+	margin: 0 auto;
+	max-width: 750px;
+    background-color: #fdf6e3;
+    padding-left: 40px;
+    padding-right: 40px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    -webkit-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+    -moz-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+    box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+
+}
+.pure-form legend
+{
+	border: none;
+	padding-top: 0px;
+}
+legend span
+{
+	visibility: hidden;
+}
+
+body
+{
+	margin: 8px !important;
+	background-color:#eee8d5;
+}
+
+fieldset
+{
+	margin-bottom: 1.5em !important;
+}
+
+#condition_title
+{
+	text-align: center;
+	position: relative;
+    top: -25px;
+}
+
+#user_info_title
+{
+	text-align: center;
+	position: relative;
+    top: -25px;
+}
+
+#center_title
+{
+    text-align: center;
+    position: relative;
+    top: -25px;
+}
+
+.front_panel
+{
+    border-width: 0px;
+    position:relative;
+    max-width: 750px;
+    text-align: center;
+    top: 10px;
+    margin: 0 auto;   
+    background-color: #fdf6e3;
+    padding-left: 40px;
+    padding-right: 40px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    -webkit-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+    -moz-box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+    box-shadow: -3px -3px 10px 0px rgba(50, 50, 50, 0.79);
+
+}
+
+.title
+{
+    font-family: 'Lobster Two', cursive;
+    font-size: 75px;
+    color:#585858;
+    position: relative;
+    text-align: center;
+    display: block;
+    top: 80px;
+
+}
+
+.smallertitle
+{
+    font-family: 'Lobster Two', cursive;
+    font-size: 70px;
+    color:#585858;
+    position: relative;
+    text-align: center;
+    display: block;
+    top: 20px;
+
+}
+.title a
+{
+    font-family: 'Slabo 27px', serif;
+    font-size: 25px;
+    display: inline;
+    color:#f9f7f1;
+    background-color:#727272; 
+}
+
+
+.title span
+{
+    color:#C99D4C
+}
+
+.smalltitle
+{
+    font-family: 'Lobster Two', cursive;
+    font-size: 30px;
+    color:#585858;
+    position: relative;
+    text-align: center;
+    display: block;
+    top: 80px;
+
+}
+
+.smalltitle a
+{
+    font-family: 'Slabo 27px', serif;
+    font-size: 20px;
+    display: inline;
+    color:#f9f7f1;
+    background-color:#727272;
+    position: relative;
+    top: 15px; 
+}
+
+
+.smalltitle span
+{
+    color:#C99D4C
+}
+table
+{
+    width: 400px;
+    margin: 0px auto;
+}
+h3
+{
+    text-align: center;
+    position: relative;
+    top: -25px;
+}
+
+

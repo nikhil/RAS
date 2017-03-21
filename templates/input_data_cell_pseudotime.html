@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+
+<form action="{{ url_for('get_cell_pseudotime') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span id="labels" class="pure-control-group">
+<fieldset class="pure-control-group">
+<span id="user_info">
+<legend>
+<span>
+User Info
+</span>
+</legend>
+<h2 id="user_info_title">
+User Info
+<hr>
+</h2>
+<span> 
+<label for="experiment_id">Experiment Id</label><input type="text" id="experiment_id" name="experiment_id" placeholder="Experiment Id" required/>
+<br><br><label for="num_dimensions">Number of Dimensions</label>&nbsp;<input type="text" id="num_dimensions" name="num_dimensions" placeholder="Number of Dimensions" required/>
+</span>
+</span>
+</fieldset>
+<fieldset>
+<span id="gene_list">
+<legend>
+<span>
+genes
+</span>
+</legend>
+<h2 id="gene_title">
+Genes
+<hr>
+</h2>
+<span id="gene_1"><br><br><label for="gene_1">Gene 1</label><input type="text" id="gene_1" name="gene_1" placeholder="Gene Name" required/>
+</span>
+<span id="gene_2">
+<br>
+<br>
+<label for="modify_gene_2">Modify Genes</label><input type="button" id="modify_gene_2" class="pure-button" onclick="add_gene(2);" value="Add Gene">&nbsp;<input type="button" id="modify_gene_1" disabled class="pure-button" onclick="remove_gene(2);" value="Remove condition">
+</span>
+
+<br>
+<br>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</span>
+</fieldset>
+</span>
+</form>
+
+<script>
+
+
+function add_gene(gene)
+{
+	var id = "gene_"+gene.toString();
+	var parent_id = "gene_"+gene.toString();
+	var element = document.getElementById(id);
+	var append_span = document.createElement('span');
+	//element.style.opacity = 0;
+	//append_span.style.opacity = 0;
+	var original_class_name = element.className; 
+	element.className = 'fadeOut';
+	append_span.className = 'fadeOut';
+	//append_span.style.opacity = 0;	
+	
+	setTimeout(function()
+	{
+		append_span.innerHTML = '<br><br><label for="modify_gene_'+(gene+1).toString()+'">Modify genes</label><input type="button" id="modify_label_'+(gene+1).toString()+'" class="pure-button" onclick="add_gene('+(gene+1).toString()+');" value="Add Gene">&nbsp;<input type="button" id="modify_gene_'+(gene+1).toString()+'" class="pure-button" onclick="remove_gene('+(gene+1).toString()+');" value="Remove Gene">';
+		element.innerHTML = '<br><br><label for="gene_'+gene.toString()+'">Gene '+gene.toString()+'</label><input type="text" id="gene_'+gene.toString()+'" name="gene_+'+gene.toString()+'" placeholder="Gene Name" required/>';		
+		var parent_element = document.getElementById(parent_id);
+		append_span.id = 'gene_'+(gene+1).toString();
+		append_span.className = 'fadeIn';
+		parent_element.appendChild(append_span);
+		//element.style.opacity = 1;
+		//window.getComputedStyle(append_span, null).getPropertyValue('opacity');
+		//append_span.style.opacity = 1;
+		element.className = 'fadeIn'; 
+				
+		//parent_element.innerHTML.append += '<span id="label_'+label.toString()+'_condition_'+(condition+1).toString()+'" class="input_type"><input type="button" onclick="add_condition('+label.toString()+','+(condition+1).toString()+');" value="Add condition"></span>'
+
+	},500);
+
+	
+	//parent_element.innerHTML += '<span id="label_'+label.toString()+'_condition_'+(condition+1).toString()+'" class="input_type"><input type="button" onclick="add_condition('+label.toString()+','+(condition+1).toString()+');" value="Add condition"></span>'
+
+}
+function remove_gene(gene)
+{
+	var id = "gene_"+gene.toString();
+	var second_id = "gene_"+(gene-1).toString();
+	var element = document.getElementById(id);
+	var second_element = document.getElementById(second_id);
+	//second_element.style.opacity = 0
+	element.className = 'fadeOut';
+	second_element.className = 'fadeOut';
+	setTimeout(function()
+	{
+		if(gene == 3)
+		{
+			second_element.innerHTML = '<br><br><label for="modify_gene_'+gene.toString()+'">Modify Genes</label><input type="button" id="modify_gene_'+gene.toString()+'" class="pure-button" onclick="add_gene('+(gene-1).toString()+');" value="Add Gene">&nbsp;<input type="button" id="modify_gene_'+gene.toString()+'" class="pure-button" disabled onclick="remove_gene('+(gene-1).toString()+');" value="Remove Gene">'
+
+		}
+		else
+		{
+			second_element.innerHTML = '<br><br><label for="modify_label_'+gene.toString()+'">Modify Genes</label><input type="button" id="modify_label_'+gene.toString()+'" class="pure-button" onclick="add_gene('+(gene-1).toString()+');" value="Add Gene">&nbsp;<input type="button" id="modify_gene_'+gene.toString()+'" class="pure-button" onclick="remove_gene('+(gene-1).toString()+');" value="Remove Gene">'
+
+		}
+		
+		//element.style.opacity = 0
+		//second_element.style.opacity = 1
+		//element.className = 'fadeOut';
+		second_element.className = 'fadeIn';
+		element.parentNode.removeChild(element);
+
+
+	},500);
+	
+	//element.style.opacity = 0;
+	
+
+
+}
+
+
+</script>
+
+
+</body>
+</html>

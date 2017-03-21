@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+
+<form action="{{ url_for('get_diff_type',diff_type=diff_type)}}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<div class="front_panel">
+<span class="pure-control-group">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;{{title}}</h2><hr><br><label for="experiment_id">Experiment Id</label>&nbsp;<input type="text" id="experiment_id" name="experiment_id" placeholder="Experiment Id" required/><br><br><input type="submit" id="submit" class="pure-button" value="Submit"></span></div>
+</form>

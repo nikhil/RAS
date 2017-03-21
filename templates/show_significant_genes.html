@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+<script src="../static/javascript/Chart.js"></script>
+</head>
+<body>
+<div class="front_panel">
+<div id="div1">
+	<h2 class="chartTitle">Top 25 genes of group 1 over group 2 expression</h2>
+	<canvas id="myChart1"></canvas>
+</div>
+<div id="div2">
+	<h2 class="chartTitle">Top 25 genes of group 1 below group 2 expression</h2>
+	<canvas id="myChart2"></canvas>
+</div>
+
+</div>
+<br>
+<br>
+<div class="front_panel">
+<h2>Top 100 genes of group 1 over group 2 expression</h2>
+<hr>
+{{html_table_group_1|safe}}
+
+</div>
+<br>
+<br>
+<div class="front_panel">
+<h2>Top 100 genes of group 1 below group 2 expression</h2>
+<hr>
+{{html_table_group_2|safe}}
+
+</div>
+<script type="text/javascript">
+var ctx1 = document.getElementById("myChart1").getContext("2d");
+var ctx2 = document.getElementById("myChart2").getContext("2d");
+var myLineChart1 = new Chart(ctx1,{type:'line',data: {{higher_group_1_data|tojson|safe}}, options:{}});
+var myLineChart2 = new Chart(ctx2,{type:'line',data: {{higher_group_2_data|tojson|safe}}, options:{}});
+
+
+
+</script>
+</body>
+</html>

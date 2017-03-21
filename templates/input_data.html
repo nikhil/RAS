@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+<form action="{{ url_for('get_normalized_experiment') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span id="conditions" class="pure-control-group">
+<fieldset class="pure-control-group">
+<span id="user_info">
+<legend>
+<span>
+User Info
+</span>
+</legend>
+<h2 id="user_info_title">
+User Info
+<hr>
+</h2>
+<span> 
+<label for="user_name"> User Name</label><input type="text" id="user_name" name="user_name" placeholder="User Name" required/>
+<br>
+<br>
+<label for="user_email"> User Email</label><input type="email" id="user_email" name="user_email" placeholder="User Email" required/>
+</span>
+<br>
+<br>
+<label for="genome">Genome</label>
+                <select id="genome">{{genome_name_list_html|safe}}</select>
+<br>
+<br>
+<label for="library_type">Library Type</label>
+                <select id="library_type">{{library_type_name_list|safe}}</select>
+</span>
+</fieldset>
+<fieldset>
+<span id="condition_1">
+<legend>
+<span>
+Condition 1
+</span>
+</legend>
+<h2 id="condition_title">
+Condition 1
+<hr>
+</h2>
+<span> 
+<label for="condition_1_name"> Condition Name</label><input type="text" id="condition_1_name" name="condition_1_name" placeholder="Condition Name" required/>
+</span>
+<span id="condition_1_sample_1">
+<br>
+<br>
+<label for="condition_1_sample_1">Sample 1</label><input type="button" class="pure-button" id="condition_1_sample_1" onclick="add_file_field(1,1);" value="From File"/>&nbsp;<input type="button" class="pure-button" id="condition_1_sample_1" onclick="add_url_field(1,1);" value="From Url"/>
+</span>
+<span id="condition_1_sample_2">
+<br>
+<br>
+<label for="modify_condition_1">Modify Samples</label><input type="button" id="modify_condition_1" class="pure-button" onclick="add_sample(1,2);" value="Add Sample">&nbsp;<input type="button" id="modify_condition_1" class="pure-button" onclick="remove_sample(1,2);" value="Remove Sample">
+</span>
+</span>
+</fieldset>
+<fieldset class="pure-control-group">
+<span id="condition_2"><legend><span>Condition 2</span></legend><h2 id="condition_title">Condition 2<hr></h2><span><label for="condition_2_name"> Condition Name</label><input type="text" id="condition_2_name" name="condition_2_name" placeholder="Condition Name" required></span><span id="condition_2_sample_1"><br><br><label for="condition_2_sample_1">Sample 1</label><input type="button" class="pure-button" id="condition_2_sample_1" onclick="add_file_field(2,1);" value="From File">&nbsp;<input type="button" class="pure-button" id="condition_2_sample_1" onclick="add_url_field(2,1);" value="From Url"></span><span id="condition_2_sample_2"><br><br><label for="modify_condition_2">Modify Samples</label><input type="button" id="modify_condition_2" class="pure-button" onclick="add_sample(2,2);" value="Add Sample">&nbsp;<input type="button" id="modify_condition_2" class="pure-button" onclick="remove_sample(2,2);" value="Remove Sample"></span></span>
+</fieldset>
+<fieldset class="pure-control-group">
+<span id="condition_3">
+<label for="modify_condition_num">Modify Conditions</label><input type="button" id="modify_condition_num" class="pure-button" onclick="add_condition(3);" value="Add Condition">&nbsp;<input type="button" id="modify_condition_num" class="pure-button" disabled onclick="remove_condition(3);" value="Remove Condition">
+<br>
+<br>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</span>
+</fieldset>
+</span>
+</form>
+<script type="text/javascript">
+   
+function add_file_field(condition,sample)
+{
+	var id = "condition_"+condition.toString() +"_sample_"+sample.toString();
+	var element = document.getElementById(id);
+	//var original_class_name = element.className; 
+	element.className = 'fadeOut';
+	//element.style.opacity = 0;
+	setTimeout(function()
+	{
+		element.innerHTML = '<br><br><label for='+id+' >Sample '+sample+' file</label><input type="file" name='+id+' id='+id+' value="Upload" accept=".sra" required/>';
+		//element.style.opacity = 1;
+		element.className = 'fadeIn';
+
+
+	},500);
+}
+function add_url_field(condition,sample)
+{
+	var id = "condition_"+condition.toString() +"_sample_"+sample.toString();
+	var element = document.getElementById(id);
+	//element.style.opacity = 0;
+	element.className = 'fadeOut';	
+	setTimeout(function()
+	{
+		element.innerHTML = '<br><br><label for='+id+' >Sample '+sample.toString()+' Url</label><input type="type" name='+id+' id='+id+'value="Url" pattern=".*\.sra" placeholder="Url or Ftp Link" required/>';
+		element.className = 'fadeIn';
+		//element.style.opacity = 1;
+
+	},500);
+
+}
+function add_sample(condition,sample)
+{
+	var id = "condition_"+condition.toString() +"_sample_"+sample.toString();
+	var parent_id = "condition_"+condition.toString();
+	var element = document.getElementById(id);
+	var append_span = document.createElement('span');
+	//element.style.opacity = 0;
+	//append_span.style.opacity = 0;
+	var original_class_name = element.className; 
+	element.className = 'fadeOut';
+	append_span.className = 'fadeOut';
+	//append_span.style.opacity = 0;	
+	
+	setTimeout(function()
+	{
+		append_span.innerHTML = '<br><br><label for="modify_condition_'+condition.toString()+'">Modify Samples</label><input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="add_sample('+condition.toString()+','+(sample+1).toString()+');" value="Add Sample">&nbsp;<input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="remove_sample('+condition.toString()+','+(sample+1).toString()+');" value="Remove Sample">'
+		element.innerHTML = '<br><br><label for="condition_'+condition.toString()+'_sample_'+sample.toString()+'">Sample '+sample.toString()+'</label><input type="button" class="pure-button" id="condition_'+condition.toString()+'_sample_'+sample.toString()+'" onclick="add_file_field('+condition.toString()+','+sample.toString()+');" value="From File"/>&nbsp;<input type="button" class="pure-button" id="condition_'+condition.toString()+'_sample_'+sample.toString()+'" onclick="add_url_field('+condition.toString()+','+sample.toString()+');" value="From Url" />'		
+		var parent_element = document.getElementById(parent_id);
+		append_span.id = 'condition_'+condition.toString()+'_sample_'+(sample+1).toString();
+		append_span.className = 'fadeIn';
+		parent_element.appendChild(append_span);
+		//element.style.opacity = 1;
+		//window.getComputedStyle(append_span, null).getPropertyValue('opacity');
+		//append_span.style.opacity = 1;
+		element.className = 'fadeIn'; 
+				
+		//parent_element.innerHTML.append += '<span id="condition_'+condition.toString()+'_sample_'+(sample+1).toString()+'" class="input_type"><input type="button" onclick="add_sample('+condition.toString()+','+(sample+1).toString()+');" value="Add Sample"></span>'
+
+	},500);
+
+	
+	//parent_element.innerHTML += '<span id="condition_'+condition.toString()+'_sample_'+(sample+1).toString()+'" class="input_type"><input type="button" onclick="add_sample('+condition.toString()+','+(sample+1).toString()+');" value="Add Sample"></span>'
+
+
+
+}
+function remove_sample(condition,sample)
+{
+	var id = "condition_"+condition.toString() +"_sample_"+sample.toString();
+	var second_id = "condition_"+condition.toString() +"_sample_"+(sample-1).toString();
+	var element = document.getElementById(id);
+	var second_element = document.getElementById(second_id);
+	//second_element.style.opacity = 0
+	element.className = 'fadeOut';
+	second_element.className = 'fadeOut';
+	setTimeout(function()
+	{
+		if(sample == 2)
+		{
+			second_element.innerHTML = '<br><br><label for="modify_condition_'+condition.toString()+'">Modify Samples</label><input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="add_sample('+condition.toString()+','+(sample-1).toString()+');" value="Add Sample">&nbsp;<input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" disabled onclick="remove_sample('+condition.toString()+','+(sample-1).toString()+');" value="Remove Sample">'
+
+		}
+		else
+		{
+			second_element.innerHTML = '<br><br><label for="modify_condition_'+condition.toString()+'">Modify Samples</label><input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="add_sample('+condition.toString()+','+(sample-1).toString()+');" value="Add Sample">&nbsp;<input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="remove_sample('+condition.toString()+','+(sample-1).toString()+');" value="Remove Sample">'
+
+		}
+		
+		//element.style.opacity = 0
+		//second_element.style.opacity = 1
+		//element.className = 'fadeOut';
+		second_element.className = 'fadeIn';
+		element.parentNode.removeChild(element);
+
+
+	},500);
+	
+	//element.style.opacity = 0;
+	
+
+
+}
+function add_condition(condition)
+{
+	var id = "condition_"+condition.toString();
+	var element = document.getElementById(id);
+	var append_span = document.createElement('span');
+	var append_fieldset = document.createElement('fieldset');
+	//element.style.opacity = 0;
+	//append_span.style.opacity = 0;
+	append_fieldset.className = 'pure-control-group';
+	element.innerHTML = '<legend><span>Condition '+condition.toString()+'</span></legend><h2 id="condition_title">Condition '+condition.toString()+'<hr></h2><span><label for="condition_'+condition.toString()+'_name"> Condition Name</label><input type="text" id="condition_'+condition.toString()+'_name" name="condition_'+condition.toString()+'_name" placeholder="Condition Name"></span><span id="condition_'+condition.toString()+'_sample_1"><br><br><label for="condition_'+condition.toString()+'_sample_1">Sample 1</label><input type="button" class="pure-button" id="condition_'+condition.toString()+'_sample_1" onclick="add_file_field('+condition.toString()+',1);" value="From File"/>&nbsp;<input type="button" class="pure-button" id="condition_'+condition.toString()+'_sample_1" onclick="add_url_field('+condition.toString()+',1);" value="From Url" /></span><span id="condition_'+condition.toString()+'_sample_2"><br><br><label for="modify_condition_'+condition.toString()+'">Modify Samples</label><input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="add_sample('+condition.toString()+',2);" value="Add Sample">&nbsp;<input type="button" id="modify_condition_'+condition.toString()+'" class="pure-button" onclick="remove_sample('+condition.toString()+',2);" value="Remove Sample"></span>'
+	var conditions_element = document.getElementById('conditions');
+	append_fieldset.className = 'pure-control-group fadeIn';
+	append_fieldset.innerHTML = '<br><span id="condition_'+(condition+1).toString()+'"><label for="modify_condition_num">Modify Conditions</label><input type="button" id="modify_condition_num" class="pure-button" onclick="add_condition('+(condition+1).toString()+');" value="Add Condition">&nbsp;<input type="button" id="modify_condition_num" class="pure-button" onclick="remove_condition('+(condition+1).toString()+');" value="Remove Condition"><br><br><label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit"></span>';
+
+	conditions_element.appendChild(append_fieldset);
+
+
+
+}
+function remove_condition(condition)
+{
+	var id = "condition_"+condition.toString();
+	var second_id = "condition_"+(condition-1).toString();
+	var element = document.getElementById(id);
+	var element_parent = element.parentNode;
+	var second_element = document.getElementById(second_id); 
+	
+	if(condition == 4)
+	{   second_element.innerHTML = '<br><span id="condition_'+(condition-1).toString()+'"><label for="modify_condition_num">Modify Conditions</label><input type="button" id="modify_condition_num" class="pure-button" onclick="add_condition('+(condition-1).toString()+');" value="Add Condition">&nbsp;<input type="button" id="modify_condition_num" class="pure-button" disabled onclick="remove_condition('+(condition-1).toString()+');" value="Remove Condition"><br><br><label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit"></span>';
+	}
+	else
+	{
+		second_element.innerHTML = '<br><span id="condition_'+(condition-1).toString()+'"><label for="modify_condition_num">Modify Conditions</label><input type="button" id="modify_condition_num" class="pure-button" onclick="add_condition('+(condition-1).toString()+');" value="Add Condition">&nbsp;<input type="button" id="modify_condition_num" class="pure-button" onclick="remove_condition('+(condition-1).toString()+');" value="Remove Condition"><br><br><label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit"></span>';
+
+	}
+	element_parent.parentNode.removeChild(element_parent);
+
+}
+
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+</head>
+<body>
+<div class="front_panel">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;Quality Control</h2>
+<hr>
+<p>Enter the range of mRNA to use. All cells outside the range will be removed. To pass all cells use: 'inf' for the upper bound, '0' for the lower bound and  '0' for minimum expression and '0' for minimum expression. Quality control works by eliminating genes that are not significantly expressed in a certain number of cells. The gene expression and number of cells correspond to the significance and number accordingly.</p>
+<form action="{{ url_for('get_quality_control') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span class="pure-control-group">
+<br>
+<br>
+<label for="experiment_id">Experiment Id</label><input type="text" id="experiment_id" name="experiment_id" placeholder="experiment id" value='{{experiment_id}}' readonly/>
+<br>
+<br>
+<label for="lower_bound">Lower Bound</label><input type="text" id="lower_bound" name="lower_bound" pattern="\d*(\.\d+)?" placeholder="Lower Bound" required/>
+<br>
+<br>
+<label for="upper_bound">Upper Bound</label><input type="text" id="upper_bound" name="upper_bound" pattern="(\d*(\.\d+)?)|inf)" placeholder="Upper Bound" required/>
+<br>
+<br>
+<label for="min_expression">Minimum Gene expression</label><input type="text" id="min_expression" name="min_expression" pattern="\d*(\.\d+)?" placeholder="e.g. .10" required/>
+<br>
+<br>
+<label for="min_cells">Minimum Cells for gene expression</label><input type="text" id="min_cells" name="min_cells" pattern="\d+" placeholder="e.g. 1" required/>
+<br>
+<br>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</span>
+</form>
+</div>
+<br>
+<br>
+<div class="front_panel">
+<h2>Samples Table</h2>
+<hr>
+{{html_table|safe}}
+
+</div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+
+<form action="{{ url_for('get_diff_type',diff_type=diff_type)}}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<div class="front_panel">
+<span class="pure-control-group">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;{{title}}</h2><hr><br><label for="experiment_id">Experiment Id</label><input type="text" id="experiment_id" name="experiment_id" placeholder="experiment id" value='{{experiment_id}}' readonly/><br><br><label for="first_sample">First Sample</label>&nbsp;<input type="text" id="first_sample" name="first_sample" placeholder="First Sample" required/><br><br><label for="second_sample">Second Sample</label>&nbsp;<input type="text" id="second_sample" name="second_sample" placeholder="Second Sample" required/><br><br><label for="alpha">Alpha</label>&nbsp;<input type="text" id="alpha" name="alpha" placeholder="Alpha" required/><br><br><input type="submit" id="submit" class="pure-button" value="Submit"></span></div>
+</form>
+<br>
+<br>
+<div class="front_panel">
+<h2>Samples Table</h2>
+<hr>
+{{html_table|safe}}
+
+</div>
+</body>
+</html>

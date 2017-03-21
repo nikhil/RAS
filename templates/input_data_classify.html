@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+
+<form action="{{ url_for('get_classify') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span id="labels" class="pure-control-group">
+<fieldset class="pure-control-group">
+<span id="user_info">
+<legend>
+<span>
+User Info
+</span>
+</legend>
+<h2 id="user_info_title">
+User Info
+<hr>
+</h2>
+<span> 
+<label for="experiment_id">Experiment Id</label><input type="text" id="experiment_id" name="experiment_id" placeholder="Experiment Id" required/>
+</span>
+</span>
+</fieldset>
+<fieldset>
+<span id="label_1">
+<legend>
+<span>
+Label 1
+</span>
+</legend>
+<h2 id="label_title">
+Label 1
+<hr>
+</h2>
+<span> 
+<label for="label_1_name"> Label Name</label><input type="text" id="label_1_name" name="label_1_name" placeholder="Label Name" required/>
+</span>
+<span id="label_1_condition_1"><br><br><label for="label_1_condition_1">Condition 1</label><input type="text" id="label_1_condition_1_first_gene" name="label_1_condition_1_first_gene" class="pure-input-1-4" placeholder="Gene Name(ex Sox10)" required=""><select name="label_1_condition_1_type" id="label_1_condition_1_type"><option><</option><option><=</option><option>>=</option><option>></option></select><input type="text" id="label_1_condition_1_num" class="pure-input-1-4" name="label_1_condition_1_num" placeholder="Number" required=""></span>
+
+<span id="label_1_condition_2">
+<br>
+<br>
+<label for="modify_label_1">Modify conditions</label><input type="button" id="modify_label_1" class="pure-button" onclick="add_condition(1,2);" value="Add condition">&nbsp;<input type="button" id="modify_label_1" disabled class="pure-button" onclick="remove_condition(1,2);" value="Remove condition">
+</span>
+</span>
+</fieldset>
+
+<fieldset>
+<span id="label_2">
+<legend>
+<span>
+Label 2
+</span>
+</legend>
+<h2 id="label_title">
+Label 2
+<hr>
+</h2>
+<span> 
+<label for="label_2_name"> Label Name</label><input type="text" id="label_2_name" name="label_2_name" placeholder="Label Name" required/>
+</span>
+<span id="label_2_condition_1"><br><br><label for="label_2_condition_1">Condition 1</label><input type="text" id="label_2_condition_1_first_gene" name="label_2_condition_1_first_gene" class="pure-input-1-4" placeholder="Gene Name(ex Sox10)" required=""><select name="label_2_condition_1_type" id="label_2_condition_1_type"><option><</option><option><=</option><option>>=</option><option>></option></select><input type="text" id="label_2_condition_1_num" class="pure-input-1-4" name="label_2_condition_1_num" placeholder="Number" required=""></span>
+
+<span id="label_2_condition_2">
+<br>
+<br>
+<label for="modify_label_2">Modify conditions</label><input type="button" id="modify_label_2" class="pure-button" onclick="add_condition(2,2);" value="Add condition">&nbsp;<input type="button" id="modify_label_2" disabled class="pure-button" onclick="remove_condition(2,2);" value="Remove condition">
+</span>
+</span>
+</fieldset>
+<fieldset class="pure-control-group">
+<span id="label_3">
+<label for="modify_label_num">Modify labels</label><input type="button" id="modify_label_num" class="pure-button" onclick="add_label(3);" value="Add label">&nbsp;<input type="button" id="modify_label_num" class="pure-button" disabled onclick="remove_label(3);" value="Remove label">
+<br>
+<br>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</span>
+</fieldset>
+</span>
+</form>
+
+<script>
+
+
+function add_and_condition(label,condition)
+{
+	var id = "label_"+label.toString() +"_condition_"+condition.toString();
+	var element = document.getElementById(id);
+	//var original_class_name = element.className; 
+	element.className = 'fadeOut';
+	//element.style.opacity = 0;
+	setTimeout(function()
+	{
+		element.innerHTML = '<br><br><label for='+id+'>Condition '+condition+'(And) </label><input type="text" id='+id+'_and_gene name='+id+'_and_gene class="pure-input-1-4" placeholder="Gene Name(ex Sox10)" required/><select name='+id+'_type id='+id+'_type><option><</option><option><=</option><option>>=</option><option>></option></select><input type="text" id='+id+'_num class="pure-input-1-4" name='+id+'_num placeholder="Number" required/>'
+		//element.style.opacity = 1;
+		element.className = 'fadeIn';
+
+
+	},500);
+}
+function add_or_condition(label,condition)
+{
+	var id = "label_"+label.toString() +"_condition_"+condition.toString();
+	var element = document.getElementById(id);
+	//var original_class_name = element.className; 
+	element.className = 'fadeOut';
+	//element.style.opacity = 0;
+	setTimeout(function()
+	{
+		element.innerHTML = '<br><br><label for=='+id+'>Condition '+condition+'(Or) </label><input type="text" id='+id+'_or_gene name='+id+'_or_gene class="pure-input-1-4" placeholder="Gene Name(ex Sox10)" required/><select name='+id+'_type id='+id+'_type><option><</option><option><=</option><option>>=</option><option>></option></select><input type="text" id='+id+'_num class="pure-input-1-4" name='+id+'_num placeholder="Number" required/>'
+		//element.style.opacity = 1;
+		element.className = 'fadeIn';
+
+
+	},500);
+
+}
+function add_condition(label,condition)
+{
+	var id = "label_"+label.toString() +"_condition_"+condition.toString();
+	var parent_id = "label_"+label.toString();
+	var element = document.getElementById(id);
+	var append_span = document.createElement('span');
+	//element.style.opacity = 0;
+	//append_span.style.opacity = 0;
+	var original_class_name = element.className; 
+	element.className = 'fadeOut';
+	append_span.className = 'fadeOut';
+	//append_span.style.opacity = 0;	
+	
+	setTimeout(function()
+	{
+		append_span.innerHTML = '<br><br><label for="modify_label_'+label.toString()+'">Modify conditions</label><input type="button" id="modify_label_'+label.toString()+'" class="pure-button" onclick="add_condition('+label.toString()+','+(condition+1).toString()+');" value="Add condition">&nbsp;<input type="button" id="modify_label_'+label.toString()+'" class="pure-button" onclick="remove_condition('+label.toString()+','+(condition+1).toString()+');" value="Remove condition">'
+		element.innerHTML = '<br><br><label for="label_'+label.toString()+'_condition_'+condition.toString()+'">Condition '+condition.toString()+'</label><input type="button" class="pure-button" id="label_'+label.toString()+'_condition_'+condition.toString()+'" onclick="add_and_condition('+label.toString()+','+condition.toString()+');" value="And Condition"/>&nbsp;<input type="button" class="pure-button" id="label_'+label.toString()+'_condition_'+condition.toString()+'" onclick="add_or_condition('+label.toString()+','+condition.toString()+');" value="Or Condition" />'		
+		var parent_element = document.getElementById(parent_id);
+		append_span.id = 'label_'+label.toString()+'_condition_'+(condition+1).toString();
+		append_span.className = 'fadeIn';
+		parent_element.appendChild(append_span);
+		//element.style.opacity = 1;
+		//window.getComputedStyle(append_span, null).getPropertyValue('opacity');
+		//append_span.style.opacity = 1;
+		element.className = 'fadeIn'; 
+				
+		//parent_element.innerHTML.append += '<span id="label_'+label.toString()+'_condition_'+(condition+1).toString()+'" class="input_type"><input type="button" onclick="add_condition('+label.toString()+','+(condition+1).toString()+');" value="Add condition"></span>'
+
+	},500);
+
+	
+	//parent_element.innerHTML += '<span id="label_'+label.toString()+'_condition_'+(condition+1).toString()+'" class="input_type"><input type="button" onclick="add_condition('+label.toString()+','+(condition+1).toString()+');" value="Add condition"></span>'
+
+
+
+}
+function remove_condition(label,condition)
+{
+	var id = "label_"+label.toString() +"_condition_"+condition.toString();
+	var second_id = "label_"+label.toString() +"_condition_"+(condition-1).toString();
+	var element = document.getElementById(id);
+	var second_element = document.getElementById(second_id);
+	//second_element.style.opacity = 0
+	element.className = 'fadeOut';
+	second_element.className = 'fadeOut';
+	setTimeout(function()
+	{
+		if(condition == 3)
+		{
+			second_element.innerHTML = '<br><br><label for="modify_label_'+label.toString()+'">Modify conditions</label><input type="button" id="modify_label_'+label.toString()+'" class="pure-button" onclick="add_condition('+label.toString()+','+(condition-1).toString()+');" value="Add condition">&nbsp;<input type="button" id="modify_label_'+label.toString()+'" class="pure-button" disabled onclick="remove_condition('+label.toString()+','+(condition-1).toString()+');" value="Remove condition">'
+
+		}
+		else
+		{
+			second_element.innerHTML = '<br><br><label for="modify_label_'+label.toString()+'">Modify conditions</label><input type="button" id="modify_label_'+label.toString()+'" class="pure-button" onclick="add_condition('+label.toString()+','+(condition-1).toString()+');" value="Add condition">&nbsp;<input type="button" id="modify_label_'+label.toString()+'" class="pure-button" onclick="remove_condition('+label.toString()+','+(condition-1).toString()+');" value="Remove condition">'
+
+		}
+		
+		//element.style.opacity = 0
+		//second_element.style.opacity = 1
+		//element.className = 'fadeOut';
+		second_element.className = 'fadeIn';
+		element.parentNode.removeChild(element);
+
+
+	},500);
+	
+	//element.style.opacity = 0;
+	
+
+
+}
+function add_label(label)
+{
+	var id = "label_"+label.toString();
+	var element = document.getElementById(id);
+	var append_span = document.createElement('span');
+	var append_fieldset = document.createElement('fieldset');
+	//element.style.opacity = 0;
+	//append_span.style.opacity = 0;
+	append_fieldset.className = 'pure-control-group';
+	element.innerHTML = '<legend><span>Label '+label.toString()+'</span></legend><h2 id="label_title">Label '+label.toString()+'<hr></h2><span><label for="label_'+label.toString()+'_name"> Label Name</label><input type="text" id="label_'+label.toString()+'_name" name="label_'+label.toString()+'_name" placeholder="Label Name"></span><span id="label_'+label.toString()+'_condition_1"><br><br><label for="label_'+label.toString()+'_condition_1">Condition 1</label><input type="text" id="label_'+label.toString()+'_condition_1_first_gene" name="label_'+label.toString()+'_condition_1_first_gene" class="pure-input-1-4" placeholder="Gene Name(ex Sox10)" required=""><select name="label_'+label.toString()+'_condition_1_type" id="label_'+label.toString()+'_condition_1_type"><option><</option><option><=</option><option>>=</option><option>></option></select><input type="text" id="label_'+label.toString()+'_condition_1_num" class="pure-input-1-4" name="label_'+label.toString()+'_condition_1_num" placeholder="Number" required=""></span><span id="label_'+label.toString()+'_condition_2"><br><br><label for="modify_label_'+label.toString()+'">Modify conditions</label><input type="button" id="modify_label_'+label.toString()+'" class="pure-button" onclick="add_condition('+label.toString()+',2);" value="Add condition">&nbsp;<input type="button" id="modify_label_'+label.toString()+'" class="pure-button" disabled onclick="remove_condition('+label.toString()+',2);" value="Remove condition"></span>'
+	var labels_element = document.getElementById('labels');
+	append_fieldset.className = 'pure-control-group fadeIn';
+	append_fieldset.innerHTML = '<br><span id="label_'+(label+1).toString()+'"><label for="modify_label_num">Modify labels</label><input type="button" id="modify_label_num" class="pure-button" onclick="add_label('+(label+1).toString()+');" value="Add label">&nbsp;<input type="button" id="modify_label_num" class="pure-button" onclick="remove_label('+(label+1).toString()+');" value="Remove label"><br><br><label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit"></span>';
+
+	labels_element.appendChild(append_fieldset);
+
+
+
+}
+
+
+function remove_label(label)
+{
+	var id = "label_"+label.toString();
+	var second_id = "label_"+(label-1).toString();
+	var element = document.getElementById(id);
+	var element_parent = element.parentNode;
+	var second_element = document.getElementById(second_id); 
+	
+	if(label == 4)
+	{   second_element.innerHTML = '<br><span id="label_'+(label-1).toString()+'"><label for="modify_label_num">Modify labels</label><input type="button" id="modify_label_num" class="pure-button" onclick="add_label('+(label-1).toString()+');" value="Add label">&nbsp;<input type="button" id="modify_label_num" class="pure-button" disabled onclick="remove_label('+(label-1).toString()+');" value="Remove label"><br><br><label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit"></span>';
+	}
+	else
+	{
+		second_element.innerHTML = '<br><span id="label_'+(label-1).toString()+'"><label for="modify_label_num">Modify labels</label><input type="button" id="modify_label_num" class="pure-button" onclick="add_label('+(label-1).toString()+');" value="Add label">&nbsp;<input type="button" id="modify_label_num" class="pure-button" onclick="remove_label('+(label-1).toString()+');" value="Remove label"><br><br><label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit"></span>';
+
+	}
+	element_parent.parentNode.removeChild(element_parent);
+
+}
+
+
+</script>
+
+
+</body>
+</html>

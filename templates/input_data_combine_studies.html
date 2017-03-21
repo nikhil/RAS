@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+<link href="https://fonts.googleapis.com/css?family=Slabo+27px" rel="stylesheet">
+</head>
+<body>
+
+<form action="{{ url_for('combine_studies') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<div class="front_panel">
+<span class="pure-control-group">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;Combine Studies Info</h2><hr><br><br><label for="user_name">User Name</label><input type="text" id="user_name" name="user_name" placeholder="User Name" required/><br><br><label for="user_email">User Email</label><input type="email" id="user_email" name="user_email" placeholder="User Email" required/><br><br><label for="experiment_id1">First Experiment Id</label>&nbsp;<input type="text" id="experiment_id1" name="experiment_id1" placeholder="First Experiment Id" required/><br><br><label for="experiment_id1">Second Experiment Id</label>&nbsp;<input type="text" id="experiment_id2" name="experiment_id2" placeholder="Second Experiment Id" required/><br><br><input type="submit" id="submit" class="pure-button" value="Submit"></span></div>
+</form>

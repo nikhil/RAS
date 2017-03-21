@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+
+<form action="{{ url_for('get_quality_check') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<div class="front_panel">
+<span class="pure-control-group">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;Quality Check Info</h2><hr><br><br><label for="user_name">User Name</label>&nbsp;<input type="text" id="user_name" name="user_name" placeholder="User Name" required/><br><br><label for="user_email"> User Email</label><input type="email" id="user_email" name="user_email" placeholder="User Email" required/><br><br><label for="geo_number">GEO Number</label>&nbsp;<input type="text" id="geo_number" name="geo_number" placeholder="GEO Number" required/><br><br><input type="submit" id="submit" class="pure-button" value="Submit"></span></div>
+</form>

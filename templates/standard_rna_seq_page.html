@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link href="https://fonts.googleapis.com/css?family=Lobster+Two" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Slabo+27px" rel="stylesheet">
+
+</head>
+<span class='smallertitle'>Standard RNA-Seq Data Analysis</span>
+<span class='smalltitle'>1. Align and prepare the data <br>
+<a class="pure-button" href="{{ url_for('get_input_diff_data') }}"> Assign Job </a>
+</span>
+<br>
+<br>
+<span class='smalltitle'>2. Prepare Data<br>
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Create_CuffSet_Database') }}"> Create CuffSet Database </a>
+</span>
+<br>
+<br>
+<span class='smalltitle'>3. Quality Control<br>
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='FPKM_Quality_Control') }}"> Run Quality Control </a>
+</span>
+<br><br>
+<span class='smalltitle'>4. Post-Quality Control Analysis<br>
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Create_Dendogram') }}"> Get Dendogram </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Get_Gene_Comparison') }}"> Get Gene Comparison </a>&nbsp;&nbsp;
+</span>
+<br><br>
+<span class='smalltitle'>5. Get Significant Genes<br>
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Get_Significant_Genes') }}"> By Expression </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Get_Significant_Genes_Comparison') }}"> By Differential Comparison </a>&nbsp;&nbsp;
+</span>
+<br><br>
+<span class='smalltitle'>6. Analysis on Significant Genes<br>
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Get_Heatmap') }}"> Get Heatmap </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Get_Similar_Genes') }}"> Get Similar Genes </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_diff_type',diff_type='Get_K_Means_Cluster') }}"> Get K Means Gene cluster </a>
+</span>
+<body>
+</body>
+</html>
