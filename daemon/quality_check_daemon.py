@@ -12,26 +12,31 @@ import zipfile
 import ftplib
 import subprocess
 import filelock
+import yaml
 
 project_dir = os.getcwd()[:-7]
 web_mutex = filelock.FileLock(project_dir+"/GEO_access.lock")
-ip = '172.16.57.50:5000'
 
 class quality_check(Daemon):
 
 		
 	def run(self):
-
-		sendgrid_api_key = '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'
+		with open(os.path.join(os.pardir, "config.yaml")) as config:
+			config_map = yaml.safe_load(config)
+		ip = config_map['ip']
+		sendgrid_api_key = config_map['sendgrid_api_key']
+		mongo_url = config_map['mongo_url']
+		email_address = config_map['email_address']
 
 		
 		def send_email(email_to,email_from,email_subject,email_body):
-			sg_client = sendgrid.SendGridAPIClient(apikey=sendgrid_api_key)
-			to_email = Email(email_to)
-			from_email = Email(email_from)
-			content = Content('text/html',email_body)
-			mail = Mail(from_email, email_subject, to_email, content)
-			response = sg_client.client.mail.send.post(request_body=mail.get())
+			if sendgrid_api_key != '':
+				sg_client = sendgrid.SendGridAPIClient(apikey=sendgrid_api_key)
+				to_email = Email(email_to)
+				from_email = Email(email_from)
+				content = Content('text/html',email_body)
+				mail = Mail(from_email, email_subject, to_email, content)
+				response = sg_client.client.mail.send.post(request_body=mail.get())
 
 		def quality_check(input_file):
 			quality_file = open(input_file)
@@ -182,7 +187,7 @@ class quality_check(Daemon):
 								analyze_compressed_file(file_name,GEO_Num,sample_name,keep_files,user_name,user_email)
 								time.sleep(1.5)
 		while True:
-			client = MongoClient('mongodb://localhost:27017/')
+			client = MongoClient(mongo_url)
 			experiment_db = client.experiment_database
 			quality_collection =experiment_db.quality_collection
 			quality_queue = quality_collection.find_one({'name':'quality_queue'})
@@ -202,21 +207,15 @@ class quality_check(Daemon):
 					os.chdir(output_folder)
 					parse_html(geo_number,0,user_name,user_email)
 					output_file = geo_number + '_Quality_Check.xls'
-					#output_destination_folder = original_directory+'/static/data/quality_check/'
-					#shutil.move(output_file,output_destination_folder)
 					output_link = ip+'/static/data/quality_check/'+str(geo_number)+'/'+str(output_file)				
-					email_body = 'Dear '+ user_name+'<br> Your quality check analysis for '+str(geo_number)+'has been finished. You can download the result here:'+output_link+'<br>Sincerely,<br>RnaSeqPipeline Notifier'
-					send_email(user_email,'RnaSeqPipeline@rutgers.edu','Finished Quality Check Analysis for GEO number: '+str(geo_number),email_body)				
+					email_body = 'Dear '+ user_name+'<br> Your quality check analysis for '+str(geo_number)+'has been finished. You can download the result here:'+output_link+'<br>Sincerely,<br>RAS Notifier'
+					send_email(user_email,email_address,'Finished Quality Check Analysis for GEO number: '+str(geo_number),email_body)				
 			time.sleep(300)
 		
 
 
 
 if __name__ == "__main__":
-	#client = MongoClient('mongodb://localhost:27017/')
-	#experiment_db = client.experiment_database
-	#quality_collection =experiment_db.quality_collection
-	#quality_queue = quality_collection.find_one({'name':'quality_queue'})	
 	daemon = quality_check(os.getcwd()+'/quality_check.pid',stdin='/dev/null', stdout=os.getcwd()+'/quality_check.log', stderr=os.getcwd()+'/quality_check_err.log')
 	if len(sys.argv) == 2:
 		if 'start' == sys.argv[1]:

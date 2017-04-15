@@ -6,11 +6,11 @@ library('ggplot2')
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args)==0)
 {
-	print("Usage: Rscript cell_cluster.r cluster_number")
+	print("Usage: Rscript cell_cluster.r cluster_number cluster_labels")
 }
 cluster_number <- args[1]
 HSMM <- readRDS('post_quality_control_data.rds')
-HSMM <- clusterCells(HSMM, num_clusters=as.numeric(cluster_number))
+HSMM <- clusterCells(HSMM, num_clusters=as.numeric(cluster_number), tol = 1e-6,max_components = 10, verbose=TRUE,param.gamma=300)
 saveRDS(HSMM,'post_quality_control_data.rds')
 print(plot_cell_trajectory(HSMM, color="Cluster"))
 ggsave("cell_cluster_plot.png")

@@ -4,6 +4,7 @@ import time
 import os
 from pymongo import MongoClient
 import psutil
+import yaml
 
 project_dir = os.getcwd()[:-7]
 
@@ -11,6 +12,9 @@ class server_status(Daemon):
 
 		
 	def run(self):
+		with open(os.path.join(os.pardir, "config.yaml")) as config:
+			config_map = yaml.safe_load(config)
+		mongo_url = config_map['mongo_url']
 
 		def add_to_fixed_length_list(fixed_length,list_element,element_to_add):
 			list_element.append(element_to_add)
@@ -19,7 +23,7 @@ class server_status(Daemon):
 			return list_element
 		
 		while True:			
-			client = MongoClient('mongodb://localhost:27017/')
+			client = MongoClient(mongo_url)
 			experiment_db = client.experiment_database
 			status_collection =experiment_db.server_status_collection
 			status_database_dict = status_collection.find_one({'name':'server_status_dict'})
@@ -60,9 +64,6 @@ class server_status(Daemon):
 				single_cpu_list = add_to_fixed_length_list(24,single_cpu_list,single_cpu_freq[0])
 				status_dict['cpu'][cpu_key] = single_cpu_list
 				cpu_count = cpu_count + 1
-
-
-
 			#Network
 			bytes_received = psutil.net_io_counters()[1]
 			bytes_received_gbs = round(bytes_received/float(1000000),2)
@@ -93,9 +94,6 @@ class server_status(Daemon):
 				status_collection.insert_one(new_status_dict)
 			else:
 				status_collection.replace_one({'name':'server_status_dict'},new_status_dict)
-
-
-
 			time.sleep(60)
 
 

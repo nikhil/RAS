@@ -9,11 +9,11 @@
 <body>
 <div class="front_panel">
 <div id="div1">
-	<h2 class="chartTitle">Top 25 genes of group 1 over group 2 expression</h2>
+	<h2 class="chartTitle">Top 25 genes of {{group_1_name}} over {{group_2_name}} expression</h2>
 	<canvas id="myChart1"></canvas>
 </div>
 <div id="div2">
-	<h2 class="chartTitle">Top 25 genes of group 1 below group 2 expression</h2>
+	<h2 class="chartTitle">Top 25 genes of {{group_1_name}} below {{group_2_name}} expression</h2>
 	<canvas id="myChart2"></canvas>
 </div>
 
@@ -21,7 +21,7 @@
 <br>
 <br>
 <div class="front_panel">
-<h2>Top 100 genes of group 1 over group 2 expression</h2>
+<h2>Top 100 genes of {{group_1_name}} over {{group_2_name}} expression</h2>
 <hr>
 {{html_table_group_1|safe}}
 
@@ -29,7 +29,7 @@
 <br>
 <br>
 <div class="front_panel">
-<h2>Top 100 genes of group 1 below group 2 expression</h2>
+<h2>Top 100 genes of {{group_1_name}} below {{group_2_name}} expression</h2>
 <hr>
 {{html_table_group_2|safe}}
 

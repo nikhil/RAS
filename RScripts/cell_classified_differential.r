@@ -17,15 +17,18 @@ saveRDS(gene_class,'gene_class.rds')
 newHSMM <- HSMM[gene_list,]
 expression_matrix <- exprs(newHSMM)
 colnames(expression_matrix) <- pData(newHSMM)$CellType
-sorted_matrix <- expression_matrix[order(gene_class),order(colnames(expression_matrix))]
+#sorted_matrix <- expression_matrix[order(gene_class),order(colnames(expression_matrix))]
+sorted_matrix <- expression_matrix[,order(colnames(expression_matrix))]
 Cell_Type <- colnames(sorted_matrix)
 colnames(sorted_matrix) <- 1:length(colnames(sorted_matrix))
 annotation_col_data <- data.frame(Cell_Type)
-annotation_row_data <- data.frame(gene_class[order(gene_class)])
+#annotation_row_data <- data.frame(gene_class[order(gene_class)])
+annotation_row_data <- data.frame(gene_class)
 rownames(annotation_row_data) <- rownames(sorted_matrix)
 names(annotation_row_data) <- "Gene Class"
 names(annotation_col_data) <- "Cell Type"
 log_matrix <- log(sorted_matrix+1)
-png('cell_classified_heatmap.png',width = ceiling(length(rownames(annotation_col_data))/10), height = ceiling(length(rownames(annotation_row_data))/8), units= 'in',res=600)
+#png('cell_classified_heatmap.png',width = ceiling(length(rownames(annotation_col_data))*10), height = ceiling(length(rownames(annotation_row_data))*8), units= 'px',res=600)
+png('cell_classified_heatmap.png',width = 15, height = 15, units= 'in',res=600)
 pheatmap(log_matrix, annotation_col=annotation_col_data,annotation_row=annotation_row_data,cluster_cols = FALSE,cluster_rows = FALSE,show_colnames = FALSE)
 dev.off()

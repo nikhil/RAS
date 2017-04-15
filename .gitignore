@@ -1,4 +1,13 @@
 venv/
-data/
+data/diff/*
+data/normalize/*
 *.pid
+*.lock
+*.log
+server_log.txt
 static/Paper
+static/data/diff/*
+static/data/normalize/*
+static/data/quality_check/*
+config.yaml
+

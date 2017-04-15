@@ -12,43 +12,49 @@ import json
 import multiprocessing.dummy as threads
 import yaml
 
+project_dir = os.getcwd()[:-7]
+
 class experiment_handler(Daemon):
 
 		
 	def run(self):
-		#saveout = sys.stdout
-		#fsock = open('/var/log/experiment_handler_out1.log','w')
-		#sys.stdout = fsock
 		with open(os.path.join(os.pardir, "config.yaml")) as config:
 			config_map = yaml.safe_load(config)
 		sendgrid_api_key = config_map['sendgrid_api_key']
-		mouse_gtf = config_map['genome_files']
-		mouse_genome = config_map['genome_files']
-		num_threads = config_map['num_threads']		
+		genome_files = config_map['genome_files']
+		num_threads = config_map['num_threads']
+		mongo_url = config_map['mongo_url']
+		email_address = config_map['email_address']
+		ip = config_map['ip']
+		top_hat_threads = str(config_map['top_hat_threads'])
+		no_covereage_search = ''
+		if config_map['no-coverage-search'] == True:
+			no_covereage_search = '--no-coverage-search'
+
 
 		def sequence_worker(sequence_tuple):
 			sample_1_fastq_file = sequence_tuple[0]
 			sample_2_fastq_file = sequence_tuple[1]
 			directory = sequence_tuple[2]
-			mouse_gtf = sequence_tuple[3]
-			mouse_genome = sequence_tuple[4]
+			gtf = sequence_tuple[3]
+			genome = sequence_tuple[4]
 			analysis_type = sequence_tuple[5]
+			library_type = sequence_tuple[6]
 			
 			#os.chdir(directory)
 			thout_folder = directory+'/thout'
 			qout_folder = directory+'/qout'
-			lout_folder = directory+'/lout'
-			library_type = 'fr-unstranded'
+			lout_folder = directory+'/lout'			
 			if sample_2_fastq_file != None:
 				#tophat2 -o thout1_firststrand -p 8 --library-type=fr-firststrand -G ~/Mouse_data/Mus_musculus/UCSC/mm10/Annotation/genes.gtf ~/Mouse_data/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome sample1_1.fastq sample1_2.fastq
 				sample_1_fastq = directory+'/'+sample_1_fastq_file
 				sample_2_fastq = directory+'/'+sample_2_fastq_file
-				subprocess.call(['tophat2','-o',thout_folder,'-p','8','--no-coverage-search','--library-type',library_type,'-G',mouse_gtf,mouse_genome,sample_1_fastq,sample_2_fastq])				
+				subprocess.call(['tophat2','-o',thout_folder,'-p',top_hat_threads,no_covereage_search,'--library-type',library_type,'-G',gtf,genome,sample_1_fastq,sample_2_fastq])				
 				os.remove(sample_1_fastq)
 				os.remove(sample_2_fastq)
 			else:
 				sample_1_fastq = directory+'/'+sample_1_fastq_file
-				subprocess.call(['tophat2','-o',thout_folder,'-p','8','--no-coverage-search','--library-type',library_type,'-G',mouse_gtf,mouse_genome,sample_1_fastq])
+				subprocess.call(['tophat2','-o',thout_folder,'-p',top_hat_threads,no_covereage_search,'--library-type',library_type,'-G',gtf,genome,sample_1_fastq])
 				os.remove(sample_1_fastq)
 			for single_file in os.listdir(directory):
 				if '.sra' in single_file:
@@ -58,21 +64,22 @@ class experiment_handler(Daemon):
 			bam_file = directory+'/thout/accepted_hits.bam'
 			#cuffquant -o CELL_T24_A01_cuffquant_out GENCODE.gtf CELL_T24_A01_thout/accepted_hits.bam
 			if analysis_type == 1:
-				subprocess.call(['cuffquant','-o',qout_folder,'-p','8','-q','--library-type',library_type,mouse_gtf,bam_file])
+				subprocess.call(['cuffquant','-o',qout_folder,'-p',top_hat_threads,'-q','--library-type',library_type,gtf,bam_file])
 			else:
-				subprocess.call(['cufflinks','-o',qout_folder,'-p','8','-q','--library-type',library_type,mouse_gtf,bam_file])
+				subprocess.call(['cufflinks','-o',qout_folder,'-p',top_hat_threads,'-q','--library-type',library_type,gtf,bam_file])
 
 
 
 
 
 		def send_email(email_to,email_from,email_subject,email_body):
-			sg_client = sendgrid.SendGridAPIClient(apikey=sendgrid_api_key)
-			to_email = Email(email_to)
-			from_email = Email(email_from)
-			content = Content('text/html',email_body)
-			mail = Mail(from_email, email_subject, to_email, content)
-			response = sg_client.client.mail.send.post(request_body=mail.get())
+			if sendgrid_api_key != '':
+				sg_client = sendgrid.SendGridAPIClient(apikey=sendgrid_api_key)
+				to_email = Email(email_to)
+				from_email = Email(email_from)
+				content = Content('text/html',email_body)
+				mail = Mail(from_email, email_subject, to_email, content)
+				response = sg_client.client.mail.send.post(request_body=mail.get())
 		def get_sample_and_condition_num(path_str):
 			condition_folder = (re.search('condition_\d+',path_str)).group()
 			sample_folder = (re.search('sample_\d+',path_str)).group()
@@ -81,10 +88,7 @@ class experiment_handler(Daemon):
 			return {'sample_num':sample_num,'condition_num':condition_num}
 
 		while True:
-			#print "testing"
-			#send_email('nikhilkumar516@gmail.com','RnaSeqAnalysisSuite@rutgers.edu','test','test message')
-			client = MongoClient('mongodb://localhost:27017/')
-			library_type = 'fr-unstranded'
+			client = MongoClient(mongo_url)
 			experiment_db = client.experiment_database
 			norm_collection =experiment_db.normalize_collection
 			diff_collection = experiment_db.diff_collection
@@ -96,10 +100,12 @@ class experiment_handler(Daemon):
 					experiment_id = queue.pop(0)
 					experiment_queue['data'] = queue
 					norm_collection.replace_one({'name':'experiment_queue'},experiment_queue)
-					original_directory_dict = norm_collection.find_one({'name':'original_directory'})
-					original_directory = original_directory_dict['data']
-					server_ip_dict = norm_collection.find_one({'name':'server_ip'})
-					server_ip = server_ip_dict['data']
+					#original_directory_dict = norm_collection.find_one({'name':'original_directory'})
+					#original_directory = original_directory_dict['data']
+					original_directory = project_dir
+					#server_ip_dict = norm_collection.find_one({'name':'server_ip'})
+					#server_ip = server_ip_dict['data']
+					server_ip = ip
 					folder_path = original_directory+'/data/normalize/'+str(experiment_id)
 					os.chdir(folder_path)
 					#quality check-----------------------------------
@@ -129,12 +135,21 @@ class experiment_handler(Daemon):
 						condition_names = json.load(condition_names_data)
 					with open(folder_path+'/sample_sheet.txt','w') as sample_sheet_input:
 						sample_sheet_input.write('sample_id\tgroup_label\n')						
-					with open(folder_path+'/experiment_info.json','w') as experiment_info:
-		json.dump(experiment_info_dict,experiment_info)
+					with open(folder_path+'/experiment_info.json') as experiment_info:
+						experiment_data = json.load(experiment_info)
 
-					
-					quality_check_email_body = 'Dear '+user_data['user_name']+'<br>Your sequence files have been processed through quality check. You can check the results of each sample by clicking on the corresponding links below.<br><ul>'+quality_check_email_body+'</ul><br>Sincerely,<br>RnaSeqAnalysisSuite Notifier'
-					send_email(user_data['user_email'],'RnaSeqAnalysisSuite@rutgers.edu','Normalized Experiment Quality Check ID: '+str(experiment_id),quality_check_email_body)
+					library_type = experiment_data['library_type']
+					genome_name = experiment_data['genome']
+					genome_location = ''
+					genome_gtf_location = ''
+
+					for single_genome in genome_files:
+						if single_genome['name'] == genome_name:
+							genome_location = single_genome['genome']
+							genome_gtf_location = single_genome['gtf']
+										
+					quality_check_email_body = 'Dear '+user_data['user_name']+'<br>Your sequence files have been processed through quality check. You can check the results of each sample by clicking on the corresponding links below.<br><ul>'+quality_check_email_body+'</ul><br>Sincerely,<br>RAS Notifier'
+					send_email(user_data['user_email'],email_address,'Normalized Experiment Quality Check ID: '+str(experiment_id),quality_check_email_body)
 					
 					#alignment-----------------------------
 					process_pool = threads.Pool(num_threads)
@@ -151,19 +166,7 @@ class experiment_handler(Daemon):
 								elif '_2.fastq' in single_sample_file:
 									sample_2_fastq = single_sample_file
 							if sample_1_fastq != None:
-								sequence_job_list.append((sample_1_fastq,sample_2_fastq,sample_subdir,mouse_gtf,mouse_genome,1))
-								#sequence_worker((sample_1_fastq,sample_2_fastq,sample_subdir,mouse_gtf,mouse_genome))
-								#os.chdir(sample_subdir)								
-
-								##if sample_2_fastq != None:
-									#tophat2 -o thout1_firststrand -p 8 --library-type=fr-firststrand -G ~/Mouse_data/Mus_musculus/UCSC/mm10/Annotation/genes.gtf ~/Mouse_data/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome sample1_1.fastq sample1_2.fastq
-								##	subprocess.call(['tophat2','-o','thout','-p','8','--library-type',library_type,'-G',mouse_gtf,mouse_genome,sample_1_fastq,sample_2_fastq])
-								##else:
-								##	subprocess.call(['tophat2','-o','thout','-p','8','--library-type',library_type,'-G',mouse_gtf,mouse_genome,sample_1_fastq])
-								#cuffquant--------------------------
-								##bam_file = os.getcwd()+'/thout/accepted_hits.bam'														
-								#cuffquant -o CELL_T24_A01_cuffquant_out GENCODE.gtf CELL_T24_A01_thout/accepted_hits.bam
-								##subprocess.call(['cuffquant','-o','qout','-p','8','--library-type',library_type,mouse_gtf,bam_file])
+								sequence_job_list.append((sample_1_fastq,sample_2_fastq,sample_subdir,genome_gtf_location,genome_location,1,library_type))
 								condition_num = (re.search('\d+',single_condition_folder)).group()
 								group_label = condition_names[str(condition_num)]
 								sample_id = sample_subdir +'/qout/abundances.cxb'
@@ -181,7 +184,7 @@ class experiment_handler(Daemon):
 					os.chdir(folder_path)
 					
 					sample_sheet_path = folder_path+'/sample_sheet.txt'
-					subprocess.call(['cuffnorm','-o','cnout','-q','-p','8','--library-type',library_type,'--use-sample-sheet',mouse_gtf,sample_sheet_path])
+					subprocess.call(['cuffnorm','-o','cnout','-q','-p',top_hat_threads,'--library-type',library_type,'--use-sample-sheet',genome_gtf_location,sample_sheet_path])
 					
 					output_name = str(experiment_id)+'.zip'
 					cuffnorm_folder = 'cnout/' 
@@ -191,8 +194,8 @@ class experiment_handler(Daemon):
 					url_link = server_ip+'/static/data/normalize/'+str(experiment_id)+'/'+output_name
 
 
-					finished_email_body = 'Dear '+user_data['user_name']+'<br>We finished processing your sequence files. You can access the output here: <br>'+ url_link+'<br>Sincerely,<br>RnaSeqAnalysisSuite Notifier'
-					send_email(user_data['user_email'],'RnaSeqAnalysisSuite@rutgers.edu','Normalized Experiment Finished ID: '+str(experiment_id),finished_email_body)
+					finished_email_body = 'Dear '+user_data['user_name']+'<br>We finished processing your sequence files. You can access the output here: <br>'+ url_link+'<br>Sincerely,<br>RAS Notifier'
+					send_email(user_data['user_email'],email_address,'Normalized Experiment Finished ID: '+str(experiment_id),finished_email_body)
 					norm_collection =experiment_db.normalize_collection
 			if experiment_queue1 != None:
 				queue1 = experiment_queue1['data']
@@ -232,10 +235,22 @@ class experiment_handler(Daemon):
 						condition_names = json.load(condition_names_data)
 					with open(folder_path+'/sample_sheet.txt','w') as sample_sheet_input:
 						sample_sheet_input.write('sample_id\tgroup_label\n')
+					with open(folder_path+'/experiment_info.json') as experiment_info:
+						experiment_data = json.load(experiment_info)
+
+					library_type = experiment_data['library_type']
+					genome_name = experiment_data['genome']
+					genome_location = ''
+					genome_gtf_location = ''
+
+					for single_genome in genome_files:
+						if single_genome['name'] == genome_name:
+							genome_location = single_genome['genome']
+							genome_gtf_location = single_genome['gtf']
 
 					
-					quality_check_email_body = 'Dear '+user_data['user_name']+'<br>Your sequence files have been processed through quality check. You can check the results of each sample by clicking on the corresponding links below.<br><ul>'+quality_check_email_body+'</ul><br>Sincerely,<br>RnaSeqAnalysisSuite Notifier'
-					send_email(user_data['user_email'],'RnaSeqAnalysisSuite@rutgers.edu','Differential Experiment Quality Check ID: '+str(experiment_id),quality_check_email_body)
+					quality_check_email_body = 'Dear '+user_data['user_name']+'<br>Your sequence files have been processed through quality check. You can check the results of each sample by clicking on the corresponding links below.<br><ul>'+quality_check_email_body+'</ul><br>Sincerely,<br>RAS Notifier'
+					send_email(user_data['user_email'],email_address,'Differential Experiment Quality Check ID: '+str(experiment_id),quality_check_email_body)
 					
 					#alignment-----------------------------
 					process_pool = threads.Pool(num_threads)
@@ -252,19 +267,7 @@ class experiment_handler(Daemon):
 								elif '_2.fastq' in single_sample_file:
 									sample_2_fastq = single_sample_file
 							if sample_1_fastq != None:
-								sequence_job_list.append((sample_1_fastq,sample_2_fastq,sample_subdir,mouse_gtf,mouse_genome,2))
-								#sequence_worker((sample_1_fastq,sample_2_fastq,sample_subdir,mouse_gtf,mouse_genome))
-								#os.chdir(sample_subdir)								
-
-								##if sample_2_fastq != None:
-									#tophat2 -o thout1_firststrand -p 8 --library-type=fr-firststrand -G ~/Mouse_data/Mus_musculus/UCSC/mm10/Annotation/genes.gtf ~/Mouse_data/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome sample1_1.fastq sample1_2.fastq
-								##	subprocess.call(['tophat2','-o','thout','-p','8','--library-type',library_type,'-G',mouse_gtf,mouse_genome,sample_1_fastq,sample_2_fastq])
-								##else:
-								##	subprocess.call(['tophat2','-o','thout','-p','8','--library-type',library_type,'-G',mouse_gtf,mouse_genome,sample_1_fastq])
-								#cuffquant--------------------------
-								##bam_file = os.getcwd()+'/thout/accepted_hits.bam'														
-								#cuffquant -o CELL_T24_A01_cuffquant_out GENCODE.gtf CELL_T24_A01_thout/accepted_hits.bam
-								##subprocess.call(['cuffquant','-o','qout','-p','8','--library-type',library_type,mouse_gtf,bam_file])
+								sequence_job_list.append((sample_1_fastq,sample_2_fastq,sample_subdir,genome_gtf_location,genome_location,2,library_type))
 								condition_num = (re.search('\d+',single_condition_folder)).group()
 								group_label = condition_names[str(condition_num)]
 								sample_id = sample_subdir +'/thout/accepted_hits.bam'
@@ -282,8 +285,8 @@ class experiment_handler(Daemon):
 					process_pool.join()
 					os.chdir(folder_path)
 					sample_sheet_path = folder_path+'/sample_sheet.txt'
-					subprocess.call(['cuffmerge','-g',mouse_gtf,'-s',mouse_genome,'-p','8','assemblies.txt'])
-					subprocess.call(['cuffdiff','-o','cdout','-q','-p','8','--library-type',library_type,'--use-sample-sheet',mouse_gtf,sample_sheet_path])
+					subprocess.call(['cuffmerge','-g',genome_gtf_location,'-s',genome_location,'-p',top_hat_threads,'assemblies.txt'])
+					subprocess.call(['cuffdiff','-o','cdout','-q','-p',top_hat_threads,'--library-type',library_type,'--use-sample-sheet',genome_gtf_location,sample_sheet_path])
 					output_name = str(experiment_id)+'.zip'
 					cuffdiff_folder = 'cdout/' 
 					subprocess.call(['zip','-r',output_name,cuffdiff_folder])
@@ -296,8 +299,6 @@ class experiment_handler(Daemon):
 					send_email(user_data['user_email'],'RnaSeqAnalysisSuite@rutgers.edu','Differential Experiment Finished ID: '+str(experiment_id),finished_email_body)
 
 			time.sleep(60)
-		#sys.stdout = saveout
-		#fsock.close()
 
 
 if __name__ == "__main__":
