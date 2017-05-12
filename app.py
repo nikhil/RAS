@@ -306,6 +306,7 @@ def get_normalized_experiment():
 					shutil.rmtree(folder_path)
 					return render_template('error.html',error_text=error_response)
 				finally:
+					os.chdir(original_directory)
 					downloading_mutex.release()
 	#os.chdir(folder_path)
 
@@ -343,6 +344,7 @@ def get_normalized_experiment():
 			shutil.rmtree(folder_path)
 			return render_template('error.html',error_text='There was an error processing your files, please check the server logs')
 		finally:
+			os.chdir(original_directory)
 			downloading_mutex.release()
 
 
@@ -387,13 +389,134 @@ def get_normalized_experiment():
 		experiment_queue['data'] = queue
 		norm_collection.replace_one({'name':'experiment_queue'},experiment_queue)
 
-	os.chdir(original_directory)
+	email_body = 'Dear '+ user_info_dict['user_name']+'<br> This is a confirmation message that your experiment has been scheduled. The id for your experiment is ' + str(experiment_id)+'<br>Sincerely,<br>RAS Notifier'
+	send_email(user_info_dict['user_email'],RAS_email_address,'Normalized Experiment Scheduled ID: '+str(experiment_id),email_body)
+	html_body = 'This is a confirmation message that your experiment has been scheduled. The id for your experiment is ' + str(experiment_id) +'. A confirmation email has been sent out to '+user_info_dict['user_email']
+	return render_template('success.html',success_text=html_body)
+@app.route('/normalize_folder',methods=['GET'])
+def get_normalized_folder():
+	with open('config.yaml') as config:
+		config_map = yaml.safe_load(config)
+	genome_list = config_map['genome_files']
+	library_type_list = config_map['library-type']
+	genome_name_list_html = ''
+	library_type_name_list = ''
+	for single_library_item in library_type_list:
+		library_type_name_list = library_type_name_list + '<option>'+single_library_item+'</option>' 
+	for single_genome_item in genome_list:
+		genome_name_list_html = genome_name_list_html + '<option>'+single_genome_item['name']+'</option>'
+
+	
+	return render_template('input_data_zip.html',genome_name_list_html=genome_name_list_html, library_type_name_list=library_type_name_list)
+@app.route('/normalize_folder',methods=['POST'])
+def get_normalized_folder_data():
+	found_experiment_id = False
+	condition_dict = {}
+	#Get expereminet Id
+	while found_experiment_id == False:
+		experiment_id = randint(10000,99999)
+		folder_path = original_directory+'/data/normalize/'+str(experiment_id)
+		if os.path.isdir(folder_path):
+			continue
+		else:
+			found_experiment_id = True
+	#move into the experiment directory
+	os.makedirs(folder_path)
+	print folder_path
+	form_files = request.files
+
+	downloading_mutex.acquire()
+	try:
+		os.makedirs(folder_path+'/zip_data')
+		os.chdir(folder_path+'/zip_data')		
+		zip_file = form_files['zip_file']
+		if '.zip' not in zip_file.filename:
+			error_response = "The file: " + zip_file.filename + " for "+zip_file_key+" is not a valid zip file."
+			os.chdir(original_directory)
+			shutil.rmtree(folder_path)
+			return render_template('error.html',error_text=error_response)
+		zip_file.save(secure_filename(zip_file.filename))	
+	except:
+		print sys.exc_info()
+		os.chdir(original_directory)
+		shutil.rmtree(folder_path)
+		return render_template('error.html',error_text='There was an error processing your files, please check the server logs<br>'+str(sys.exc_info()))
+	finally:
+		os.chdir(original_directory)
+		downloading_mutex.release()
+	#unzip folder
+	abs_path = os.path.abspath(folder_path + '/zip_data/'+secure_filename(zip_file.filename))
+	zip_ref = zipfile.ZipFile(abs_path)
+	zip_ref.extractall(folder_path)
+	zip_ref.close()
+	#iterate files	
+	condition_num = 1
+	for subdir, dirs, files in os.walk(folder_path+'/'+zip_file.filename[0:-4]):
+		for single_file in files:
+			if '.sra' in single_file or '.fastq' in single_file:
+				condition_path = folder_path+'/condition_'+str(condition_num)+'/sample_1'
+				condition_dict[str(condition_num)] = single_file.split('.')[0]
+				condition_num = condition_num + 1
+				os.makedirs(condition_path)
+				if '.sra' in single_file:
+					if os.path.exists(subdir+'/'+single_file):
+						shutil.move(subdir+'/'+single_file,condition_path+'/'+single_file)
+				else:					
+					if '_1' in single_file or '_2' in single_file:
+						if '_1' in single_file:
+							pair_file_name = single_file[0:-7]+'2.fastq'
+							shutil.move(subdir+'/'+single_file,condition_path+'/'+single_file)
+						elif '_2' in single_file:
+							pair_file_name = single_file[0:-7]+'1.fastq'
+							shutil.move(subdir+'/'+single_file,condition_path+'/'+single_file)
+						pair_file = subdir+'/'+pair_file_name
+						if os.path.exists(pair_file):
+							shutil.move(pair_file,condition_path+'/'+pair_file_name)
+							if os.path.exists(subdir+'/'+single_file):
+								shutil.move(subdir+'/'+single_file,condition_path+'/'+single_file)
+						else:
+							if os.path.exists(subdir+'/'+single_file):
+								shutil.move(subdir+'/'+single_file,condition_path+'/'+single_file[0:-7]+'1.fastq')						
+					else:
+						shutil.move(subdir+'/'+single_file,condition_path+'/'+single_file[0:-6]+'_1.fastq')
+	shutil.rmtree(folder_path+'/'+zip_file.filename[0:-4])
+
+	user_info_dict = {}
+	user_info_dict['user_name'] = request.form['user_name']
+	user_info_dict['user_email'] = request.form['user_email']
+	experiment_info_dict = {}
+	experiment_info_dict['genome'] = request.form['genome']
+	experiment_info_dict['library_type'] = request.form['library_type']
+
+
+	with open(folder_path+'/condition_names.json','w') as condition_names:
+		json.dump(condition_dict,condition_names)
+	with open(folder_path+'/user_info.json','w') as user_info:
+		json.dump(user_info_dict,user_info)
+	with open(folder_path+'/experiment_info.json','w') as experiment_info:
+		json.dump(experiment_info_dict,experiment_info)
+	
+	#os.chdir(original_directory)
+	client = MongoClient(mongo_url)
+	experiment_db = client.experiment_database
+	norm_collection =experiment_db.normalize_collection
+	experiment_queue = norm_collection.find_one({'name':'experiment_queue'})
+	if experiment_queue == None:
+		new_queue = []
+		new_queue.append(experiment_id)
+		new_queue_dict = {'name':'experiment_queue','data':new_queue}
+		norm_collection.insert_one(new_queue_dict)
+	else:
+		queue = experiment_queue['data']
+		queue.append(experiment_id)		
+		experiment_queue['data'] = queue
+		norm_collection.replace_one({'name':'experiment_queue'},experiment_queue)
 
 	email_body = 'Dear '+ user_info_dict['user_name']+'<br> This is a confirmation message that your experiment has been scheduled. The id for your experiment is ' + str(experiment_id)+'<br>Sincerely,<br>RAS Notifier'
 	send_email(user_info_dict['user_email'],RAS_email_address,'Normalized Experiment Scheduled ID: '+str(experiment_id),email_body)
 	html_body = 'This is a confirmation message that your experiment has been scheduled. The id for your experiment is ' + str(experiment_id) +'. A confirmation email has been sent out to '+user_info_dict['user_email']
 	return render_template('success.html',success_text=html_body)
-	
+
 @app.route('/analyze/cluster',methods=['GET'])
 def get_info_for_cluster():
 	return render_template('input_data_cluster.html')
@@ -469,7 +592,7 @@ def get_cluster_multiple():
 		shutil.rmtree(folder_path+'/multi_cluster')
 		os.makedirs(folder_path+'/multi_cluster')
 
-	url_link = ip+'/static/data/normalize/'+str(experiment_id)+'/collected_clusters.txt'
+	url_link = ip+'/static/data/normalize/'+str(experiment_id)+'/collected_clusters.xls'
 	html_destination_folder = original_directory+'/static/data/normalize/'+str(experiment_id)+'/'
 	email_body = 'Dear '+ str(request.form['user_name'])+'<br> This is a confirmation message that your multiple cluster study for experiment '+str(experiment_id) +' has finsihed. You can access the output here: <br>'+ url_link+'<br>Sincerely,<br>RAS Notifier'
 	def multiple_cluster_thread(folder_path,number_of_iterations,cluster_num,email_body,html_destination_folder,experiment_id,email_address):
@@ -852,8 +975,11 @@ def get_user_info():
 			experiment_num = 0		
 			for single_id in queue:
 				user_file_path = original_directory+'/data/normalize/'+str(single_id)+'/user_info.json'
-				with open(user_file_path) as user_info_data:
-					user_name = json.load(user_info_data)['user_name']
+				if not os.path.exists(user_file_path):
+					user_name = 'Error'
+				else:
+					with open(user_file_path) as user_info_data:
+						user_name = json.load(user_info_data)['user_name']
 				html_response = html_response+'<tr><td>'+str(experiment_num)+'</td><td>'+str(single_id)+'</td><td>'+str(user_name)+'</td></tr>'
 				experiment_num = experiment_num + 1
 			html_response = html_response+'</table>'
@@ -1182,7 +1308,7 @@ def combine_studies():
 		compressed_output = folder_path+'/'+output_name		
 		shutil.copy(compressed_output,html_destination_folder)
 		#email_body = 'Dear '+ str(user_info_dict['user_name'])+'<br> This is a confirmation message that your combined studies for experiment '+str(experiment_id1)+' and '+str(experiment_id2) +' has finsihed. The id for your experiment is '+str(experiment_id)+'.You can access the output here: <br>'+ url_link+'<br>Sincerely,<br>RnaSeqPipeline Notifier'
-		send_email(user_info_dict['user_email'],'RnaSeqPipeline@rutgers.edu','Finished Analysis for '+str(experiment_id1)+' and '+str(experiment_id2),email_body)
+		send_email(user_info_dict['user_email'],RAS_email_address,'Finished Analysis for '+str(experiment_id1)+' and '+str(experiment_id2),email_body)
 	single_thread = Thread(target=cuff_norm_thread,args=(genome_gtf_location,sample_sheet_path,folder_path,experiment_id1,experiment_id2,email_body,html_destination_folder,user_info_dict))
 	single_thread.start()
 	return render_template('success.html',success_text=html_body)
@@ -1359,6 +1485,7 @@ def get_diff_experiment():
 					shutil.rmtree(folder_path)
 					return render_template('error.html',error_text=error_response)
 				finally:
+					os.chdir(original_directory)
 					downloading_mutex.release()
 	#os.chdir(folder_path)
 
@@ -1396,6 +1523,7 @@ def get_diff_experiment():
 			shutil.rmtree(folder_path)
 			return render_template('error.html',error_text='There was an error processing your files, please check the server logs')
 		finally:
+			os.chdir(original_directory)
 			downloading_mutex.release()
 
 
@@ -1438,8 +1566,7 @@ def get_diff_experiment():
 		queue.append(experiment_id)		
 		experiment_queue['data'] = queue
 		diff_collection.replace_one({'name':'experiment_queue'},experiment_queue)
-
-	os.chdir(original_directory)
+	
 
 	email_body = 'Dear '+ user_info_dict['user_name']+'<br> This is a confirmation message that your experiment has been scheduled. The id for your experiment is ' + str(experiment_id)+'<br>Sincerely,<br>RnaSeqPipeline Notifier'
 	send_email(user_info_dict['user_email'],'RnaSeqPipeline@rutgers.edu','Differential Experiment Scheduled ID: '+str(experiment_id),email_body)
@@ -2162,7 +2289,7 @@ HSMM <- readRDS('post_quality_control_data.rds')\n'''
 if __name__ == '__main__':
 	client = MongoClient(mongo_url)
 	experiment_db = client.experiment_database
-	#experiment_db.normalize_collection.drop()
+	experiment_db.normalize_collection.drop()
 	#experiment_db.quality_collection.drop()
 	
 	#experiment_information_dict = {'name':'original_directory','data':os.getcwd()}
@@ -2177,7 +2304,7 @@ if __name__ == '__main__':
 	#experiment_db.server_status_collection.drop()
 	###new_list.append('85522')
 	#new_list.append('98021')
-	#new_list.append('46186')
+	#new_list.append('41147')
 	if len(new_list) != 0:
 		if experiment_queue == None:
 			new_queue = new_list

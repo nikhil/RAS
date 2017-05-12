@@ -1,7 +1,7 @@
 sendgrid_api_key: ''
 ip: '172.16.57.50:5000'
 num_threads: 2
-mapper_threads: 8
+mapper_threads: 2
 mongo_url: 'mongodb://localhost:27017/'
 email_address: 'RnaSeqAnalysisSuite@rutgers.edu'
 library-type:

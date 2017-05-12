@@ -187,19 +187,19 @@ class quality_check(Daemon):
 								analyze_compressed_file(file_name,GEO_Num,sample_name,keep_files,user_name,user_email)
 								time.sleep(1.5)
 		while True:
-			client = MongoClient(mongo_url)
+			client = MongoClient(mongo_url)			
 			experiment_db = client.experiment_database
 			quality_collection =experiment_db.quality_collection
-			quality_queue = quality_collection.find_one({'name':'quality_queue'})
+			quality_queue = quality_collection.find_one({'name':'experiment_queue'})			
 			if quality_queue != None:
 				dict_queue = quality_queue['data']
 				if len(dict_queue) >0:
-					quality_control_dict = dict_queue.pop(0)
+					quality_control_dict = dict_queue.pop(0)			
 					geo_number = quality_control_dict['geo_number']
 					user_name = quality_control_dict['user_name']
 					user_email = quality_control_dict['user_email']
 					quality_queue['data'] = dict_queue
-					quality_collection.replace_one({'name':'quality_queue'},quality_queue)
+					quality_collection.replace_one({'name':'experiment_queue'},quality_queue)
 					output_folder = project_dir+'/static/data/quality_check/'+str(geo_number)+'/'
 					if os.path.isdir(output_folder):
 						shutil.rmtree(output_folder)

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+<form action="{{ url_for('get_normalized_folder_data') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<span id="conditions" class="pure-control-group">
+<fieldset class="pure-control-group">
+<span id="user_info">
+<legend>
+<span>
+User Info
+</span>
+</legend>
+<h2 id="user_info_title">
+User Info
+<hr>
+</h2>
+<span> 
+<label for="user_name"> User Name</label><input type="text" id="user_name" name="user_name" placeholder="User Name" required/>
+<br>
+<br>
+<label for="user_email"> User Email</label><input type="email" id="user_email" name="user_email" placeholder="User Email" required/>
+</span>
+<br>
+<br>
+<label for="genome">Genome</label>
+                <select id="genome" name="genome">{{genome_name_list_html|safe}}</select>
+<br>
+<br>
+<label for="library_type">Library Type</label>
+                <select id="library_type" name="library_type">{{library_type_name_list|safe}}</select>
+</span>
+</fieldset>
+<fieldset class="pure-control-group">
+<label for='zip_file'>Zip File</label><input type="file" name="zip_file" id="zip_file" value="Upload" accept=".zip">
+<br>
+<br>
+<label for="submit">Submit</label><input type="submit" id="submit" class="pure-button" value="Submit">
+</fieldset>
+</form>
+   

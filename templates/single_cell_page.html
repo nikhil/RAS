@@ -10,7 +10,8 @@
 </head>
 <span class='smallertitle'>Single-cell Data Analysis</span>
 <span class='smalltitle'>1. Align and prepare the data <br>
-<a class="pure-button" href="{{ url_for('get_input_data') }}"> Assign Job </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_input_data') }}"> Assign Job (url or file) </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_normalized_folder') }}"> Assign Job (zip) </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_combine_studies') }}"> Combine Experiment Data</a>
 </span>
 <br>
@@ -28,7 +29,8 @@
 <a class="pure-button" href="{{ url_for('get_info_trim_id') }}"> Trim Data </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_decision_tree_id') }}"> Get Decision Tree </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_manual_differential_heatmap_id') }}"> Get Manual Heatmap </a>&nbsp;&nbsp;
-<a class="pure-button" href="{{ url_for('get_info_for_cluster') }}"> Clustering Analysis </a>
+<a class="pure-button" href="{{ url_for('get_info_for_cluster') }}"> Clustering Analysis </a>&nbsp;&nbsp;
+<a class="pure-button" href="{{ url_for('get_info_for_cluster_multiple') }}"> Clustering Validation </a>
 </span>
 <br><br>
 <span class='smalltitle'>5. Classify<br>

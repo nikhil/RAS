@@ -9,7 +9,7 @@ if(length(args)!=4)
 {
 	print("Usage: Rscript cell_manual_differential.r gene_list gene_class cell_list cell_class")
 }
-HSMM <- readRDS("classified_cells.rds")
+HSMM <- readRDS("post_quality_control_data.rds")
 HSMM <- HSMM[, strtoi(unlist(strsplit(args[3],",")))]
 gene_list <-  unlist(strsplit(args[1],","))
 gene_class <- unlist(strsplit(args[2],","))
@@ -28,6 +28,6 @@ rownames(annotation_row_data) <- rownames(sorted_matrix)
 names(annotation_row_data) <- "Gene Class"
 names(annotation_col_data) <- "Cell Type"
 log_matrix <- log(sorted_matrix+1)
-png('cell_manual_heatmap.png',width = ceiling(length(rownames(annotation_col_data))/10), height = ceiling(length(rownames(annotation_row_data))/8), units= 'in',res=600)
+png('cell_manual_heatmap.png',width = 15, height = 15, units= 'in',res=600)
 pheatmap(log_matrix, annotation_col=annotation_col_data,annotation_row=annotation_row_data,cluster_cols = FALSE,cluster_rows = FALSE,show_colnames = FALSE)
 dev.off()

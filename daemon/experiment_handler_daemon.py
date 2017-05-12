@@ -26,10 +26,7 @@ class experiment_handler(Daemon):
 		mongo_url = config_map['mongo_url']
 		email_address = config_map['email_address']
 		ip = config_map['ip']
-		top_hat_threads = str(config_map['top_hat_threads'])
-		no_covereage_search = ''
-		if config_map['no-coverage-search'] == True:
-			no_covereage_search = '--no-coverage-search'
+		hisat2_and_cufflinks_threads = str(config_map['hisat2_and_cufflinks_threads'])		
 
 
 		def sequence_worker(sequence_tuple):
@@ -42,31 +39,61 @@ class experiment_handler(Daemon):
 			library_type = sequence_tuple[6]
 			
 			#os.chdir(directory)
-			thout_folder = directory+'/thout'
 			qout_folder = directory+'/qout'
 			lout_folder = directory+'/lout'			
 			if sample_2_fastq_file != None:
 				#tophat2 -o thout1_firststrand -p 8 --library-type=fr-firststrand -G ~/Mouse_data/Mus_musculus/UCSC/mm10/Annotation/genes.gtf ~/Mouse_data/Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome sample1_1.fastq sample1_2.fastq
+				hisat_library_type = ''
+				rna_strandness = ''
+				if library_type == 'fr-firststrand':
+					rna_strandness = '--rna-strandness'
+					hisat_library_type = 'RF'
+				if library_type == 'fr-secondstrand':
+					rna_strandness = '--rna-strandness'
+					hisat_library_type = 'FR'
 				sample_1_fastq = directory+'/'+sample_1_fastq_file
 				sample_2_fastq = directory+'/'+sample_2_fastq_file
-				subprocess.call(['tophat2','-o',thout_folder,'-p',top_hat_threads,no_covereage_search,'--library-type',library_type,'-G',gtf,genome,sample_1_fastq,sample_2_fastq])				
+				with open(directory+'/hisat2.log','w') as hisat2_log:
+					subprocess.call(['hisat2','-p',hisat2_and_cufflinks_threads,rna_strandness,hisat_library_type,'--dta-cufflinks','-t','-x',genome,'-1',sample_1_fastq,'-2',sample_2_fastq,'-S',directory+'/accepted_hits.sam'],stderr = hisat2_log)
+				with open(directory+'/accepted_hits.bam','w') as bam_output, open(directory+'/samtools_view_log.txt','w') as samtools_view_log:
+					subprocess.call(['samtools','view','-bS',directory+'/accepted_hits.sam'],stderr=samtools_view_log,stdout=bam_output)
+				with open(directory+'/samtools_sort_log.txt','w') as samtools_sort_log:
+					subprocess.call(['samtools','sort',directory+'/accepted_hits.bam','-O','BAM','-o',directory+'/accepted_hits_sorted.bam'],stderr=samtools_sort_log)
+				os.remove(directory+'/accepted_hits.sam')
+				os.remove(directory+'/accepted_hits.bam')				
 				os.remove(sample_1_fastq)
 				os.remove(sample_2_fastq)
 			else:
 				sample_1_fastq = directory+'/'+sample_1_fastq_file
-				subprocess.call(['tophat2','-o',thout_folder,'-p',top_hat_threads,no_covereage_search,'--library-type',library_type,'-G',gtf,genome,sample_1_fastq])
-				os.remove(sample_1_fastq)
-			for single_file in os.listdir(directory):
-				if '.sra' in single_file:
-					sra_path = directory + '/'+single_file
-					#os.remove(sra_path)
+				hisat_library_type = ''
+				rna_strandness = ''
+				if library_type == 'fr-firststrand':
+					rna_strandness = '--rna-strandness'
+					hisat_library_type = 'R'
+				if library_type == 'fr-secondstrand':
+					rna_strandness = '--rna-strandness'
+					hisat_library_type = 'F'
+				with open(directory+'/hisat2.log','w') as hisat2_log:
+					subprocess.call(['hisat2','-p',hisat2_and_cufflinks_threads,rna_strandness,hisat_library_type,'--dta-cufflinks','-t','-x',genome,'-U',sample_1_fastq,'-S',directory+'/accepted_hits.sam'],stderr = hisat2_log)
+				with open(directory+'/accepted_hits.bam','w') as bam_output, open(directory+'/samtools_view_log.txt','w') as samtools_view_log:
+					subprocess.call(['samtools','view','-bS',directory+'/accepted_hits.sam'],stderr=samtools_view_log,stdout=bam_output)
+				with open(directory+'/samtools_sort_log.txt','w') as samtools_sort_log:
+					subprocess.call(['samtools','sort',directory+'/accepted_hits.bam','-O','BAM','-o',directory+'/accepted_hits_sorted.bam'],stderr=samtools_sort_log)
+				os.remove(directory+'/accepted_hits.sam')
+				os.remove(directory+'/accepted_hits.bam')				
+				os.remove(sample_1_fastq)			
+			#for single_file in os.listdir(directory):
+			#	if '.sra' in single_file:
+			#		sra_path = directory + '/'+single_file
+			#		os.remove(sra_path)
+			
 			#cuffquant--------------------------
-			bam_file = directory+'/thout/accepted_hits.bam'
+			bam_file = directory+'/accepted_hits_sorted.bam'
 			#cuffquant -o CELL_T24_A01_cuffquant_out GENCODE.gtf CELL_T24_A01_thout/accepted_hits.bam
 			if analysis_type == 1:
-				subprocess.call(['cuffquant','-o',qout_folder,'-p',top_hat_threads,'-q','--library-type',library_type,gtf,bam_file])
+				subprocess.call(['cuffquant','-o',qout_folder,'-p',hisat2_and_cufflinks_threads,'-q','--library-type',library_type,gtf,bam_file])
 			else:
-				subprocess.call(['cufflinks','-o',qout_folder,'-p',top_hat_threads,'-q','--library-type',library_type,gtf,bam_file])
+				subprocess.call(['cufflinks','-o',qout_folder,'-p',hisat2_and_cufflinks_threads,'-q','--library-type',library_type,gtf,bam_file])
 
 
 
@@ -128,6 +155,17 @@ class experiment_handler(Daemon):
 								shutil.copy(html_source_file,html_destination_folder)
 								sample_information = get_sample_and_condition_num(subdir)
 								quality_check_email_body = quality_check_email_body + '<li>'+single_file[:-4]+' ( Condition: '+sample_information['condition_num']+' Sample: '+sample_information['sample_num']+' ) <br>'+server_ip+'/static/data/normalize/'+str(experiment_id)+'/'+single_file[:-4]+'_1_fastqc.html</li>'
+							elif '.fastq' in single_file:
+								os.chdir(subdir)
+								#fastqc SRR1971738_1.fastq
+								if '_1' in single_file:
+									fastq_file = single_file
+									subprocess.call(['fastqc',fastq_file])
+									html_source_file = subdir+'/'+ single_file[:-8]+'_1_fastqc.html'								
+									shutil.copy(html_source_file,html_destination_folder)
+									sample_information = get_sample_and_condition_num(subdir)
+									quality_check_email_body = quality_check_email_body + '<li>'+single_file[:-4]+' ( Condition: '+sample_information['condition_num']+' Sample: '+sample_information['sample_num']+' ) <br>'+server_ip+'/static/data/normalize/'+str(experiment_id)+'/'+single_file[:-8]+'_1_fastqc.html</li>'
+
 					
 					with open(folder_path+'/user_info.json') as user_info_data:
 						user_data = json.load(user_info_data)
@@ -184,8 +222,7 @@ class experiment_handler(Daemon):
 					os.chdir(folder_path)
 					
 					sample_sheet_path = folder_path+'/sample_sheet.txt'
-					subprocess.call(['cuffnorm','-o','cnout','-q','-p',top_hat_threads,'--library-type',library_type,'--use-sample-sheet',genome_gtf_location,sample_sheet_path])
-					
+					subprocess.call(['cuffnorm','-o','cnout','-q','-p',hisat2_and_cufflinks_threads,'--library-type',library_type,'--use-sample-sheet',genome_gtf_location,sample_sheet_path])
 					output_name = str(experiment_id)+'.zip'
 					cuffnorm_folder = 'cnout/' 
 					subprocess.call(['zip','-r',output_name,cuffnorm_folder])
@@ -285,8 +322,8 @@ class experiment_handler(Daemon):
 					process_pool.join()
 					os.chdir(folder_path)
 					sample_sheet_path = folder_path+'/sample_sheet.txt'
-					subprocess.call(['cuffmerge','-g',genome_gtf_location,'-s',genome_location,'-p',top_hat_threads,'assemblies.txt'])
-					subprocess.call(['cuffdiff','-o','cdout','-q','-p',top_hat_threads,'--library-type',library_type,'--use-sample-sheet',genome_gtf_location,sample_sheet_path])
+					subprocess.call(['cuffmerge','-g',genome_gtf_location,'-s',genome_location,'-p',hisat2_and_cufflinks_threads,'assemblies.txt'])
+					subprocess.call(['cuffdiff','-o','cdout','-q','-p',hisat2_and_cufflinks_threads,'--library-type',library_type,'--use-sample-sheet',genome_gtf_location,sample_sheet_path])
 					output_name = str(experiment_id)+'.zip'
 					cuffdiff_folder = 'cdout/' 
 					subprocess.call(['zip','-r',output_name,cuffdiff_folder])
