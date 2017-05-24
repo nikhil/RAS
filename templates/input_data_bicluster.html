@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="/static/css/pure-min.css"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<link rel="stylesheet" href="/static/css/font-awesome.css"/>
+</head>
+<body>
+
+<form action="{{ url_for('get_bicluster') }}" method="POST" class="pure-form pure-form-aligned" enctype = "multipart/form-data">
+<div class="front_panel">
+<span class="pure-control-group">
+<h2> <i class="fa fa-list"></i>&nbsp;&nbsp;Bicluster Analysis Info</h2><hr>
+<br><br>This function uses the tool <a href="https://github.com/linnarsson-lab/BackSPIN">BackSPIN</a>. The number of genes input specifies the number of genes which will be selected. This is based on expected noise. The depth specifies the number of binary splits that the algorithm tries to introduce to the data. Please refer to the programs Github page for more information.<br><br><label for="experiment_id">Experiment Id</label>&nbsp;<input type="text" id="experiment_id" name="experiment_id" placeholder="Experiment Id" required/><br><br><label for="num_genes">Number of Genes</label>&nbsp;<input type="text" id="num_genes" name="num_genes" placeholder="Number of Genes" value="500" required/><br><br><label for="depth">Depth</label>&nbsp;<input type="text" id="depth" name="depth" placeholder="Depth" value="4" required/><br><br><input type="submit" id="submit" class="pure-button" value="Submit"></span></div>
+</form>

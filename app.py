@@ -155,6 +155,25 @@ def convert_file_to_html_table(file_name):
 	html_file = html_file + '</table>'
 	return html_file
 
+def convert_tab_str_to_html_table(header_line,tab_str):
+	html_file = '<table class="pure-table pure-table-striped" style="table-layout: fixed; width: 100%;">'
+	html_file = html_file + '<tr>'
+	header_name_list = ['#'] + header_line.split('\t')
+	for single_header in header_name_list:
+		html_file = html_file + '<th>'+str(single_header)+'</th>'
+	html_file = html_file + '</tr>'
+	count = 0
+	row_list = tab_str.split('\n')
+	for single_row in row_list:
+		line_elements = single_row.split('\t')
+		html_file = html_file + '<tr><td>'+str(count)+'</td>'
+		for single_element in line_elements:
+			html_file = html_file + '<td>'+str(single_element)+'</td>'
+		count = count + 1
+		html_file = html_file + '</tr>'
+	html_file = html_file + '</table>'
+	return html_file
+
 def convert_non_numbered_file_to_html_table(file_name):
 	html_file = '<table class="pure-table pure-table-striped">'
 	with open(file_name) as file_pointer:
@@ -516,7 +535,65 @@ def get_normalized_folder_data():
 	send_email(user_info_dict['user_email'],RAS_email_address,'Normalized Experiment Scheduled ID: '+str(experiment_id),email_body)
 	html_body = 'This is a confirmation message that your experiment has been scheduled. The id for your experiment is ' + str(experiment_id) +'. A confirmation email has been sent out to '+user_info_dict['user_email']
 	return render_template('success.html',success_text=html_body)
-
+@app.route('/analyze/bicluster',methods=['GET'])
+def get_info_for_bicluster():
+	return render_template('input_data_bicluster.html')
+@app.route('/analyze/bicluster',methods=['POST'])
+def get_bicluster():
+	experiment_id = request.form['experiment_id']
+	num_genes = request.form['num_genes']
+	depth = request.form['depth']
+	folder_path = original_directory+'/data/normalize/'+str(experiment_id)+'/cnout'
+	if os.path.isdir(folder_path) == False:
+		return render_template('error.html',error_text='The experiment id is invalid or did not finish yet')	
+	line_num = 0	
+	row_data = []
+	fpkm_file_path = folder_path+'/genes.fpkm_table'
+	cef_file_path = folder_path+'/expression.cef'
+	output_file_path = folder_path+'/expression_clustered.cef'
+	with open(fpkm_file_path) as gene_express_file:
+		for single_line in gene_express_file:
+			single_line_list = single_line.split()
+			if line_num == 0:
+				sample_names = single_line_list[1:]			
+			else:
+				single_row = single_line_list[0] +'\t\t'+'\t'.join(single_line_list[1:]) +'\n'
+				row_data.append(single_row)
+			line_num = line_num + 1
+	cef_file = 'CEF\t1\t1\t1\t'+str(len(single_row))+'\t'+str(len(sample_names))+'\t0\n'
+	cef_file = cef_file + 'Epression_file\t'+fpkm_file_path+'\n'
+	cef_file = cef_file + '\t' + 'Sample\t' + '\t'.join(sample_names)+'\n'
+	cef_file = cef_file + 'Gene\n'	
+	cef_file = cef_file + ''.join(row_data)
+	with open(cef_file_path,'w') as genes_output:
+		genes_output.write(cef_file)
+	subprocess.Popen(['backspin','-i',cef_file_path,'-o',output_file_path,'-f',str(num_genes),'-d',str(depth)],cwd=folder_path).wait()
+	experiment_static_folder = original_directory+'/static/data/normalize/'+str(experiment_id)+'/'
+	shutil.copy(output_file_path,experiment_static_folder)
+	bicluster_table = ''
+	header_line = []
+	cluster_lists = [] 
+	with open(output_file_path) as bicluster_file:
+		bicluster_file.readline()
+		bicluster_file.readline()
+		samples_line = bicluster_file.readline()
+		samples_line_split = samples_line.split()
+		header_line.append(samples_line_split[0])
+		cluster_lists.append(samples_line_split[1:])
+		for single_line in bicluster_file:
+			single_line_split = single_line.split()
+			if single_line_split[0] != 'Gene':
+				header_line.append(single_line_split[0][:-6])
+				cluster_lists.append(single_line_split[1:])
+			else:
+				break
+		combined_cols = map('\t'.join,zip(*cluster_lists))
+		table_tab_str = '\n'.join(combined_cols)
+		header_line_tab = '\t'.join(header_line)
+	html_table = convert_tab_str_to_html_table(header_line_tab,table_tab_str)
+	output_link = '/static/data/normalize/'+str(experiment_id)+'/expression_clustered.cef'
+	output_name = experiment_id+'_expression_clustered.cef'
+	return render_template('show_bicluster.html',link=output_link,link_name=output_name,html_table=html_table)
 @app.route('/analyze/cluster',methods=['GET'])
 def get_info_for_cluster():
 	return render_template('input_data_cluster.html')

@@ -16,16 +16,21 @@
 </span>
 <br>
 <br>
-<span class='smalltitle'>2. Analyze Significant Genes<br>
+<span class='smalltitle'>2. Biclustering Analysis<br>
+<a class="pure-button" href="{{ url_for('get_info_for_bicluster') }}"> Bicluster </a>
+</span>
+<br>
+<br>
+<span class='smalltitle'>3. Analyze Significant Genes<br>
 <a class="pure-button" href="{{ url_for('get_info_experiment_id') }}"> Get Genes </a>
 </span>
 <br>
 <br>
-<span class='smalltitle'>3. Quality Control<br>
+<span class='smalltitle'>4. Quality Control<br>
 <a class="pure-button" href="{{ url_for('get_info_quality_control_id') }}"> Run Quality Control </a>
 </span>
 <br><br>
-<span class='smalltitle'>4. Post-Quality Control Analysis<br>
+<span class='smalltitle'>5. Post-Quality Control Analysis<br>
 <a class="pure-button" href="{{ url_for('get_info_trim_id') }}"> Trim Data </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_decision_tree_id') }}"> Get Decision Tree </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_manual_differential_heatmap_id') }}"> Get Manual Heatmap </a>&nbsp;&nbsp;
@@ -33,12 +38,12 @@
 <a class="pure-button" href="{{ url_for('get_info_for_cluster_multiple') }}"> Clustering Validation </a>
 </span>
 <br><br>
-<span class='smalltitle'>5. Classify<br>
+<span class='smalltitle'>6. Classify<br>
 <a class="pure-button" href="{{ url_for('get_info_for_classify') }}"> By Gene Expression </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_manual_classification_id') }}"> By Manual Selection </a>
 </span>
 <br><br>
-<span class='smalltitle'>6. Post-classification Analysis<br>
+<span class='smalltitle'>7. Post-classification Analysis<br>
 <a class="pure-button" href="{{ url_for('get_info_for_cell_pseudotime') }}"> Get Gene Pseudotime </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_differential_heatmap') }}"> Get Classified Heatmap </a>&nbsp;&nbsp;
 <a class="pure-button" href="{{ url_for('get_info_cell_genes') }}"> Differential Gene Analysis </a>&nbsp;&nbsp;
